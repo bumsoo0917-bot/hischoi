@@ -1,5 +1,5 @@
 export type Level=1|2|3|4;
-export type Question={id:string;lessonId:number;level:Level;concept:string;prompt:string;choices:string[];answer:string;explanation:string;source:string;sourceUrl:string};
+export type Question={id:string;lessonId:number;level:Level;concept:string;page:string;prompt:string;choices:string[];answer:string;explanation:string;source:string;sourceUrl:string};
 export type Lesson={id:number;title:string;shortTitle:string;videoUrl?:string;status:"ready"|"coming"};
 type Fact={id:string;term:string;clue:string;scenario:string;advanced:string;page:string;ref:keyof typeof sources};
 
@@ -32,7 +32,7 @@ const history:Fact[]=[
   ["three-kingdoms","삼국","고구려·백제·신라가 경쟁하며 발전한 고대 국가들이다.","고대의 흐름에서 세 나라가 중앙 집권 국가로 성장했다.","삼국은 주변 소국을 통합하고 국왕 중심의 체제를 발전시켰다.","PDF 2쪽","ancient"],
   ["north-south","남북국","통일 신라와 발해가 남과 북에서 함께 발전한 시기이다.","삼국 시대 뒤 남쪽의 신라와 북쪽의 발해가 병존했다.","발해의 성립으로 삼국 뒤 남북국의 형세가 전개되었다.","PDF 2쪽","ancient"],
   ["politics","정치 분야","왕·제도·외교처럼 국가 운영과 권력 관계를 다루는 역사 분야이다.","왕의 활동, 통치 제도, 주변 나라와의 관계를 한 묶음으로 정리했다.","정치는 통치 조직과 권력, 국내외 관계가 어떻게 운영되었는지를 살핀다.","PDF 2쪽","overview"],
-  ["king","왕","전근대 정치사를 이해할 때 정책과 업적을 중심으로 살피는 통치자이다.","한 왕이 어떤 제도를 만들고 어떤 외교 정책을 폈는지 조사했다.","왕의 개인 업적뿐 아니라 당시 제도와 사회 조건 속에서 정책을 이해해야 한다.","PDF 2쪽","overview"],
+  ["king","왕","전근대 정치사를 이해할 때 정책과 업적을 중심으로 살피는 통치자이다.","한 통치자가 어떤 제도를 만들고 어떤 외교 정책을 폈는지 조사했다.","왕의 개인 업적뿐 아니라 당시 제도와 사회 조건 속에서 정책을 이해해야 한다.","PDF 2쪽","overview"],
   ["institution","제도","국가와 사회를 일정하게 운영하기 위해 마련한 조직과 규칙이다.","중앙과 지방의 통치 조직, 관리 선발 방식을 살펴보았다.","제도의 변화는 왕권·지배층·백성 사이의 관계 변화를 보여 준다.","PDF 2쪽","overview"],
   ["diplomacy","외교","다른 나라와 맺은 교류·동맹·전쟁 등의 관계이다.","사신 교환과 조약, 외침에 대한 대응을 정치사의 일부로 분류했다.","외교는 국제 정세와 국내 정치에 서로 영향을 주고받는다.","PDF 2쪽","overview"],
   ["economy","경제 분야","세금·토지·교역처럼 생산과 분배, 재정 활동을 다루는 분야이다.","토지 제도와 세금 수취, 시장과 대외 교역을 한 묶음으로 정리했다.","경제 제도는 국가 재정과 백성의 생활에 직접 영향을 미친다.","PDF 2쪽","overview"],
@@ -82,12 +82,12 @@ function build(lessonId:number,facts:Fact[]):Question[]{
   return facts.flatMap((fact,index)=>{
     const wrong=[1,2,3].map(n=>facts[(index+n)%facts.length]);
     const ref=sources[fact.ref];
-    const common={lessonId,concept:fact.term,explanation:fact.clue,source:`강의 필기 ${fact.page} · ${ref.name}`,sourceUrl:ref.url};
+    const common={lessonId,concept:fact.term,page:fact.page,explanation:`${fact.clue} ${fact.advanced}`,source:`최태성 별별한국사 강의 필기 ${fact.page} · 교차 검증: ${ref.name}`,sourceUrl:ref.url};
     return [
-      {...common,id:`v2-${lessonId}-1-${fact.id}`,level:1 as const,prompt:`${fact.clue}\n이 설명에 해당하는 것은?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
-      {...common,id:`v2-${lessonId}-2-${fact.id}`,level:2 as const,prompt:`‘${fact.term}’에 대한 설명으로 옳은 것은?`,choices:[fact.clue,...wrong.map(x=>x.clue)],answer:fact.clue},
-      {...common,id:`v2-${lessonId}-3-${fact.id}`,level:3 as const,prompt:`[자료]\n${fact.scenario}\n\n자료와 가장 관련 깊은 것은?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
-      {...common,id:`v2-${lessonId}-4-${fact.id}`,level:4 as const,prompt:`‘${fact.term}’${objectParticle(fact.term)} 바르게 분석한 내용은?`,choices:[fact.advanced,...wrong.map(x=>x.advanced)],answer:fact.advanced},
+      {...common,id:`v3-${lessonId}-1-${fact.id}`,level:1 as const,prompt:`${fact.clue}\n\n위 설명에 해당하는 역사 용어·시대·국가는 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
+      {...common,id:`v3-${lessonId}-2-${fact.id}`,level:2 as const,prompt:`다음 중 ‘${fact.term}’에 대한 설명으로 강의 필기 내용과 일치하는 것은?`,choices:[fact.clue,...wrong.map(x=>x.clue)],answer:fact.clue},
+      {...common,id:`v3-${lessonId}-3-${fact.id}`,level:3 as const,prompt:`[자료]\n${fact.scenario}\n\n위 자료를 통해 파악할 수 있는 역사 용어·시대·국가는 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
+      {...common,id:`v3-${lessonId}-4-${fact.id}`,level:4 as const,prompt:`다음 중 ‘${fact.term}’${objectParticle(fact.term)} 분석한 내용으로 가장 적절한 것은?`,choices:[fact.advanced,...wrong.map(x=>x.advanced)],answer:fact.advanced},
     ];
   });
 }

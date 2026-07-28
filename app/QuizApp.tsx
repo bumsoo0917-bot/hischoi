@@ -69,6 +69,7 @@ export default function QuizApp(){
       <div className="progress"><i style={{width:`${(index+1)*10}%`}} /></div>
       <section className="question">
         <div className="q-meta"><span>문제 {index+1}</span><span>통과 기준 9 / 10</span></div>
+        <p className="pdf-page">주 출처 · 최태성 별별한국사 강의 필기 {current.page}</p>
         <p className="concept">문제 유형 · {questionTypes[level]}</p><h1>{current.prompt}</h1>
         <div className="choices">{current.choices.map((item,i)=>{
           const className=choice?(item===current.answer?"correct":item===choice?"wrong":"dim"):"";
@@ -85,7 +86,7 @@ export default function QuizApp(){
       <span className="result-seal">{didPass?"通":"再"}</span><p className="eyebrow">{lesson.id}강 · {levelNames[level]} 단계</p>
       <h1>{didPass?"수련 통과!":"한 번 더 도전해요"}</h1><div className="result-score"><strong>{score}</strong><span>/ 10</span></div>
       <p>{didPass?(level===4?`${lesson.shortTitle} 달인 칭호를 획득했습니다.`:`${levelNames[nextLevel!]} 수련이 열렸습니다.`):"9문제 이상 맞히면 통과합니다. 오답을 확인하고 새로운 문제로 다시 도전해 보세요."}</p>
-      {wrong.length>0&&<div className="review"><h2>이번 오답 개념</h2>{wrong.map(a=><div key={a.question.id}><strong>{a.question.concept}</strong><p>{a.question.explanation}</p></div>)}</div>}
+      {wrong.length>0&&<div className="review"><h2>이번 오답 개념</h2>{wrong.map(a=><div key={a.question.id}><strong>{a.question.concept}</strong><small>강의 필기 {a.question.page}</small><p>{a.question.explanation}</p></div>)}</div>}
       <div className="actions">{didPass&&nextLevel?<button className="primary" onClick={()=>start(nextLevel)}>{levelNames[nextLevel]} 단계 시작 →</button>:<button className="primary" onClick={()=>start(level)}>새로운 문제로 재도전 →</button>}<button className="secondary" onClick={()=>setScreen("lesson")}>단계 선택으로</button></div>
     </section></main>;
   }
