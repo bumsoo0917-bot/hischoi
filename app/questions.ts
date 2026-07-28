@@ -89,16 +89,53 @@ function noteUrl(page:string){
   };
   return files[page];
 }
+
+// 같은 시대에 존재했거나 상위·하위 관계인 개념을 한 문제의 선택지로
+// 함께 제시하면 둘 이상이 정답처럼 보일 수 있다. 아래 묶음 안의 개념은
+// 서로 오답 선택지로 사용하지 않는다.
+const ambiguityGroups=[
+  ["periodization","premodern","modern-era","sequence1","sequence2"],
+  ["prehistoric","artifact","site-flow"],
+  ["ancient","three-kingdoms","north-south"],
+  ["politics","king","institution","diplomacy"],
+  ["economy","tax-land","trade"],
+  ["n-farming","n-home","n-pottery","n-tools"],
+  ["bronze-class","bronze-home","bronze-farm","bronze-symbol"],
+  ["dangun","laws","bronze-symbol"],
+  ["iron","china-trade","confederacy","buyeo","goguryeo","okjeo","dongye","samhan","sodo"],
+  ["confederacy","buyeo","goguryeo","samhan"],
+  ["samhan","sodo"],
+];
+
+const clarification:Record<string,string>={
+  iron:"연맹 왕국은 철기 문화를 바탕으로 성장한 정치 형태이지만, 이 문장의 직접 단서는 철제 농기구와 철제 무기이다.",
+  confederacy:"철기 문화는 여러 정치 집단 성장의 배경이고, 연맹 왕국은 왕과 부족장이 권력을 나누는 국가 형태이다.",
+  politics:"왕·제도·외교는 정치 분야를 구성하는 세부 항목이다. 문제는 이 항목들을 함께 묶는 상위 분야를 묻는다.",
+  economy:"세금·토지·교역은 경제 분야를 구성하는 세부 항목이다. 문제는 이 항목들을 함께 묶는 상위 분야를 묻는다.",
+};
+
+function safeWrongFacts(facts:Fact[],fact:Fact,index:number){
+  const blocked=new Set([fact.id]);
+  ambiguityGroups.filter(group=>group.includes(fact.id)).forEach(group=>group.forEach(id=>blocked.add(id)));
+  const ordered=Array.from({length:facts.length-1},(_,offset)=>{
+    const distance=Math.floor(offset/2)+1;
+    const direction=offset%2===0?1:-1;
+    return facts[(index+direction*distance+facts.length)%facts.length];
+  });
+  const safe=ordered.filter(candidate=>!blocked.has(candidate.id));
+  return [...safe,...ordered.filter(candidate=>!safe.includes(candidate))].slice(0,3);
+}
+
 function build(lessonId:number,facts:Fact[]):Question[]{
   return facts.flatMap((fact,index)=>{
-    const wrong=[1,2,3].map(n=>facts[(index+n)%facts.length]);
+    const wrong=safeWrongFacts(facts,fact,index);
     const ref=sources[fact.ref];
-    const common={lessonId,concept:fact.term,page:fact.page,noteUrl:noteUrl(fact.page),explanation:`${fact.clue} ${fact.advanced}`,source:`최태성 별별한국사 강의 필기 ${fact.page}`,sourceUrl:ref.url};
+    const common={lessonId,concept:fact.term,page:fact.page,noteUrl:noteUrl(fact.page),explanation:`${fact.clue} ${fact.advanced}${clarification[fact.id]?` ${clarification[fact.id]}`:""}`,source:`최태성 별별한국사 강의 필기 ${fact.page}`,sourceUrl:ref.url};
     return [
-      {...common,id:`v3-${lessonId}-1-${fact.id}`,level:1 as const,prompt:`${fact.clue}\n\n위 설명에 해당하는 역사 용어·시대·국가는 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
-      {...common,id:`v3-${lessonId}-2-${fact.id}`,level:2 as const,prompt:`다음 중 ‘${fact.term}’에 대한 설명으로 강의 필기 내용과 일치하는 것은?`,choices:[fact.clue,...wrong.map(x=>x.clue)],answer:fact.clue},
-      {...common,id:`v3-${lessonId}-3-${fact.id}`,level:3 as const,prompt:`[자료]\n${fact.scenario}\n\n위 자료를 통해 파악할 수 있는 역사 용어·시대·국가는 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
-      {...common,id:`v3-${lessonId}-4-${fact.id}`,level:4 as const,prompt:`다음 중 ‘${fact.term}’${objectParticle(fact.term)} 분석한 내용으로 가장 적절한 것은?`,choices:[fact.advanced,...wrong.map(x=>x.advanced)],answer:fact.advanced},
+      {...common,id:`v4-${lessonId}-1-${fact.id}`,level:1 as const,prompt:`${fact.clue}\n\n위 문장이 직접 설명하는 핵심 개념은 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
+      {...common,id:`v4-${lessonId}-2-${fact.id}`,level:2 as const,prompt:`다음 중 ‘${fact.term}’ 자체에 대한 설명으로 강의 필기 내용과 일치하는 것은?`,choices:[fact.clue,...wrong.map(x=>x.clue)],answer:fact.clue},
+      {...common,id:`v4-${lessonId}-3-${fact.id}`,level:3 as const,prompt:`[자료]\n${fact.scenario}\n\n위 자료의 핵심 단서가 직접 가리키는 개념은 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
+      {...common,id:`v4-${lessonId}-4-${fact.id}`,level:4 as const,prompt:`다음 중 ‘${fact.term}’${objectParticle(fact.term)} 직접 분석한 내용으로 가장 적절한 것은?`,choices:[fact.advanced,...wrong.map(x=>x.advanced)],answer:fact.advanced},
     ];
   });
 }
