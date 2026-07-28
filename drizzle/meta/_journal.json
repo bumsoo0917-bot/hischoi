@@ -8,6 +8,13 @@
       "when": 1785238726150,
       "tag": "0000_simple_deadpool",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1785241645100,
+      "tag": "0001_outgoing_chimera",
+      "breakpoints": true
     }
   ]
 }

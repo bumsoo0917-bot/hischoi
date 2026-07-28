@@ -9,5 +9,6 @@ export const playerProgress = sqliteTable("player_progress", {
   lesson1Bosses: integer("lesson_1_bosses").notNull().default(0),
   lesson2Bosses: integer("lesson_2_bosses").notNull().default(0),
   defeatedJson: text("defeated_json").notNull().default("{}"),
+  collectionJson: text("collection_json").notNull().default("{}"),
   updatedAt: integer("updated_at").notNull(),
 });
