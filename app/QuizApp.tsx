@@ -75,7 +75,7 @@ export default function QuizApp(){
           const className=choice?(item===current.answer?"correct":item===choice?"wrong":"dim"):"";
           return <button key={item} className={className} onClick={()=>answer(item)} disabled={Boolean(choice)}><span>{i+1}</span>{item}</button>
         })}</div>
-        {choice&&<div className={`explain ${choice===current.answer?"right":"miss"}`}><strong>{choice===current.answer?"정답입니다":"아쉽지만 다시 기억해요"}</strong><p>{current.explanation}</p><small className="question-source">근거: {current.source} · <a href={current.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></small><button className="primary" onClick={next}>{index===9?"결과 확인":"다음 문제"} →</button></div>}
+        {choice&&<div className={`explain ${choice===current.answer?"right":"miss"}`}><strong>{choice===current.answer?"정답입니다":"아쉽지만 다시 기억해요"}</strong><p>{current.explanation}</p><small className="question-source">근거: {current.source}<span className="source-links"><a href={current.noteUrl} target="_blank" rel="noreferrer">검증 자료 · 해당 필기 보기 ↗</a><a href={current.sourceUrl} target="_blank" rel="noreferrer">우리역사넷 사실 확인 ↗</a></span></small><button className="primary" onClick={next}>{index===9?"결과 확인":"다음 문제"} →</button></div>}
       </section>
     </main>;
   }

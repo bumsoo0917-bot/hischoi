@@ -1,5 +1,5 @@
 export type Level=1|2|3|4;
-export type Question={id:string;lessonId:number;level:Level;concept:string;page:string;prompt:string;choices:string[];answer:string;explanation:string;source:string;sourceUrl:string};
+export type Question={id:string;lessonId:number;level:Level;concept:string;page:string;noteUrl:string;prompt:string;choices:string[];answer:string;explanation:string;source:string;sourceUrl:string};
 export type Lesson={id:number;title:string;shortTitle:string;videoUrl?:string;status:"ready"|"coming"};
 type Fact={id:string;term:string;clue:string;scenario:string;advanced:string;page:string;ref:keyof typeof sources};
 
@@ -78,11 +78,22 @@ function objectParticle(word:string){
   const code=word.charCodeAt(word.length-1);
   return code>=0xac00&&code<=0xd7a3&&(code-0xac00)%28!==0?"을":"를";
 }
+function noteUrl(page:string){
+  const files:Record<string,string>={
+    "PDF 2쪽":"/notes/pdf-2.pdf",
+    "PDF 3쪽":"/notes/pdf-3.pdf",
+    "PDF 4쪽":"/notes/pdf-4.pdf",
+    "PDF 5쪽":"/notes/pdf-5.pdf",
+    "PDF 3~4쪽":"/notes/pdf-3-4.pdf",
+    "PDF 4~5쪽":"/notes/pdf-4-5.pdf",
+  };
+  return files[page];
+}
 function build(lessonId:number,facts:Fact[]):Question[]{
   return facts.flatMap((fact,index)=>{
     const wrong=[1,2,3].map(n=>facts[(index+n)%facts.length]);
     const ref=sources[fact.ref];
-    const common={lessonId,concept:fact.term,page:fact.page,explanation:`${fact.clue} ${fact.advanced}`,source:`최태성 별별한국사 강의 필기 ${fact.page} · 교차 검증: ${ref.name}`,sourceUrl:ref.url};
+    const common={lessonId,concept:fact.term,page:fact.page,noteUrl:noteUrl(fact.page),explanation:`${fact.clue} ${fact.advanced}`,source:`최태성 별별한국사 강의 필기 ${fact.page}`,sourceUrl:ref.url};
     return [
       {...common,id:`v3-${lessonId}-1-${fact.id}`,level:1 as const,prompt:`${fact.clue}\n\n위 설명에 해당하는 역사 용어·시대·국가는 무엇인가?`,choices:[fact.term,...wrong.map(x=>x.term)],answer:fact.term},
       {...common,id:`v3-${lessonId}-2-${fact.id}`,level:2 as const,prompt:`다음 중 ‘${fact.term}’에 대한 설명으로 강의 필기 내용과 일치하는 것은?`,choices:[fact.clue,...wrong.map(x=>x.clue)],answer:fact.clue},
