@@ -33,8 +33,8 @@ export default function QuizApp(){
   const [answers,setAnswers]=useState<Answer[]>([]);
   const [choice,setChoice]=useState<string|null>(null);
 
-  useEffect(()=>{const saved=localStorage.getItem("history-master-progress");if(saved){try{setProgress({...empty,...JSON.parse(saved)})}catch{setProgress(empty)}}setReady(true)},[]);
-  useEffect(()=>{if(ready)localStorage.setItem("history-master-progress",JSON.stringify(progress))},[progress,ready]);
+  useEffect(()=>{const saved=localStorage.getItem("history-master-progress-v2");if(saved){try{setProgress({...empty,...JSON.parse(saved)})}catch{setProgress(empty)}}setReady(true)},[]);
+  useEffect(()=>{if(ready)localStorage.setItem("history-master-progress-v2",JSON.stringify(progress))},[progress,ready]);
 
   const current=quiz[index];
   const score=answers.filter(answer=>answer.correct).length;
@@ -74,7 +74,7 @@ export default function QuizApp(){
           const className=choice?(item===current.answer?"correct":item===choice?"wrong":"dim"):"";
           return <button key={item} className={className} onClick={()=>answer(item)} disabled={Boolean(choice)}><span>{i+1}</span>{item}</button>
         })}</div>
-        {choice&&<div className={`explain ${choice===current.answer?"right":"miss"}`}><strong>{choice===current.answer?"정답입니다":"아쉽지만 다시 기억해요"}</strong><p>{current.explanation}</p><button className="primary" onClick={next}>{index===9?"결과 확인":"다음 문제"} →</button></div>}
+        {choice&&<div className={`explain ${choice===current.answer?"right":"miss"}`}><strong>{choice===current.answer?"정답입니다":"아쉽지만 다시 기억해요"}</strong><p>{current.explanation}</p><small className="question-source">근거: {current.source} · <a href={current.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></small><button className="primary" onClick={next}>{index===9?"결과 확인":"다음 문제"} →</button></div>}
       </section>
     </main>;
   }
@@ -95,7 +95,7 @@ export default function QuizApp(){
     return <main><Nav home={()=>setScreen("home")} />
       <section className="lesson-hero"><div><p className="eyebrow">{lesson.id}강 수련</p><h1>{lesson.title}</h1><p>난이도별 25문제, 총 100문제 중 매번 새로운 10문제를 만납니다. 9문제 이상 맞히고 네 단계를 넘어 달인이 되어 보세요.</p></div><div className="lesson-stat"><span>진행도</span><strong>{done}<small>/4</small></strong><div><i style={{width:`${done*25}%`}} /></div></div></section>
       <section className="stage-section"><div className="section-head"><div><p className="eyebrow">네 단계의 수련</p><h2>현재 단계에 도전하세요</h2></div><a href={lesson.videoUrl} target="_blank" rel="noreferrer">강의 다시 보기 ↗</a></div>
-      <div className="source-note"><strong>문항 출처 안내</strong><p>{lesson.id===1?"영상의 주제에 맞춘 일반 역사 학습·사료 탐구 개념으로 구성했으며, 영상 자막이나 공식 교재 문항을 옮긴 것은 아닙니다.":"강의 목차와 한국사능력검정시험 기본 범위의 선사 시대·초기 국가 표준 개념을 바탕으로 구성했으며, 영상 자막을 직접 옮긴 것은 아닙니다."}</p></div>
+      <div className="source-note"><strong>문항 출처 안내</strong><p>{lesson.id===1?"공유받은 강의 필기 PDF 2쪽의 시대 흐름을 주 자료로 사용하고, 국사편찬위원회 우리역사넷 자료로 사실을 검증했습니다.":"공유받은 강의 필기 PDF 3~5쪽의 선사 시대·여러 나라 내용을 주 자료로 사용하고, 국사편찬위원회 우리역사넷 자료로 사실을 검증했습니다."} 각 문제를 푼 뒤 상세 근거와 검증 링크를 확인할 수 있습니다.</p></div>
       <div className="stages">{([1,2,3,4] as Level[]).map(item=>{const unlocked=open(item),done=progress.passed[key(lesson.id,item)];return <article key={item} className={`${done?"complete":""} ${!unlocked?"locked":""}`}><div className="stage-no">{done?"✓":item}</div><p>{item}단계</p><h3>{levelNames[item]}</h3><span>{levelDescriptions[item]}</span><div className="stage-info"><span>문제은행 25</span><span>무작위 10</span></div><button onClick={()=>unlocked&&start(item)} disabled={!unlocked}>{done?"다시 수련하기":unlocked?"도전 시작":"이전 단계 통과 필요"}</button></article>})}</div>
       <div className="rule"><strong>출제 규칙</strong><p>미출제 문제와 이전 오답을 먼저 보여 주고, 최근 문제는 잠시 쉬어 갑니다. 선택지 순서도 매번 달라집니다.</p></div></section>
     </main>;
