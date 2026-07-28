@@ -1,2 +1,2 @@
-import QuizApp from "./QuizApp";
-export default function Home(){return <QuizApp/>}
+import GameQuizApp from "./GameQuizApp";
+export default function Home(){return <GameQuizApp/>}
