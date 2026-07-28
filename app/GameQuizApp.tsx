@@ -3,8 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Lesson, Question, lessons, questionBank } from "./questions";
 
 type BossLevel=1|2|3;
-type Screen="home"|"lesson"|"quiz"|"result";
+type Screen="home"|"lesson"|"quiz"|"result"|"leaderboard";
 type Mode="practice"|"boss";
+type User={displayName:string;email:string};
+type RankingPlayer={rank:number;displayName:string;currentGold:number;totalGold:number;bossesDefeated:number;lesson1Bosses:number;lesson2Bosses:number};
+type RankingData={players:RankingPlayer[];me:(RankingPlayer&{defeated:Record<string,boolean>})|null};
 type Progress={
   defeated:Record<string,boolean>;
   attempts:Record<string,number>;
@@ -12,10 +15,11 @@ type Progress={
   wrong:Record<string,number>;
   recent:string[];
   gold:number;
+  totalGold:number;
 };
 type Answer={question:Question;selected:string;correct:boolean};
 
-const empty:Progress={defeated:{},attempts:{},seen:{},wrong:{},recent:[],gold:0};
+const empty:Progress={defeated:{},attempts:{},seen:{},wrong:{},recent:[],gold:0,totalGold:0};
 const bossLevels:BossLevel[]=[1,2,3];
 const bossCosts:Record<BossLevel,number>={1:30,2:50,3:70};
 const bossNames:Record<BossLevel,string>={1:"핵심 개념 보스",2:"개념 연결 보스",3:"자료 분석 보스"};
@@ -59,7 +63,10 @@ function nextBoss(progress:Progress,lesson:number):BossLevel{
 function migrateProgress():Progress{
   const saved=localStorage.getItem("history-master-progress-v3");
   if(saved){
-    try{return {...empty,...JSON.parse(saved)}}
+    try{
+      const parsed=JSON.parse(saved);
+      return {...empty,...parsed,totalGold:parsed.totalGold??parsed.gold??0};
+    }
     catch{return empty}
   }
   const legacy=localStorage.getItem("history-master-progress-v2");
@@ -76,7 +83,7 @@ function migrateProgress():Progress{
   }catch{return empty}
 }
 
-export default function GameQuizApp(){
+export default function GameQuizApp({user,signInHref,signOutHref}:{user:User|null;signInHref:string;signOutHref:string}){
   const [screen,setScreen]=useState<Screen>("home");
   const [progress,setProgress]=useState<Progress>(empty);
   const [ready,setReady]=useState(false);
@@ -87,9 +94,37 @@ export default function GameQuizApp(){
   const [index,setIndex]=useState(0);
   const [answers,setAnswers]=useState<Answer[]>([]);
   const [choice,setChoice]=useState<string|null>(null);
+  const [ranking,setRanking]=useState<RankingData>({players:[],me:null});
+  const [rankingLoading,setRankingLoading]=useState(false);
+  const [serverReady,setServerReady]=useState(false);
 
   useEffect(()=>{setProgress(migrateProgress());setReady(true)},[]);
   useEffect(()=>{if(ready)localStorage.setItem("history-master-progress-v3",JSON.stringify(progress))},[progress,ready]);
+  useEffect(()=>{
+    if(!ready){return}
+    if(!user){setServerReady(true);return}
+    let active=true;
+    fetch("/api/leaderboard",{cache:"no-store"})
+      .then(response=>response.ok?response.json():Promise.reject())
+      .then((data:RankingData)=>{
+        if(!active)return;
+        setRanking(data);
+        if(data.me)setProgress(old=>({...old,gold:data.me!.currentGold,totalGold:data.me!.totalGold,defeated:data.me!.defeated}));
+      })
+      .finally(()=>{if(active)setServerReady(true)});
+    return()=>{active=false};
+  },[ready,user?.email]);
+  useEffect(()=>{
+    if(!ready||!serverReady||!user)return;
+    const timer=setTimeout(()=>{
+      fetch("/api/leaderboard",{
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({currentGold:progress.gold,totalGold:progress.totalGold,defeated:progress.defeated}),
+      }).catch(()=>{});
+    },250);
+    return()=>clearTimeout(timer);
+  },[progress.gold,progress.totalGold,progress.defeated,ready,serverReady,user?.email]);
 
   const current=quiz[index];
   const score=answers.filter(answer=>answer.correct).length;
@@ -106,6 +141,13 @@ export default function GameQuizApp(){
   const goLesson=(target:Lesson)=>{
     if(target.status==="coming")return;
     setLesson(target);setScreen("lesson");scrollTo({top:0,behavior:"smooth"});
+  };
+  const openLeaderboard=()=>{
+    setScreen("leaderboard");setRankingLoading(true);scrollTo({top:0,behavior:"smooth"});
+    fetch("/api/leaderboard",{cache:"no-store"})
+      .then(response=>response.ok?response.json():Promise.reject())
+      .then((data:RankingData)=>setRanking(data))
+      .finally(()=>setRankingLoading(false));
   };
 
   const begin=(targetMode:Mode,targetLevel:BossLevel)=>{
@@ -145,6 +187,7 @@ export default function GameQuizApp(){
       return {
         ...old,
         gold:old.gold+(mode==="practice"?score*10:0),
+        totalGold:old.totalGold+(mode==="practice"?score*10:0),
         defeated:{...old.defeated,...(won?{[attempt]:true}:{})},
         attempts:{...old.attempts,[`${mode}-${attempt}`]:(old.attempts[`${mode}-${attempt}`]??0)+1},
         seen,wrong,
@@ -213,10 +256,35 @@ export default function GameQuizApp(){
     </section></main>;
   }
 
+  if(screen==="leaderboard"){
+    return <main><Nav home={()=>setScreen("home")} gold={progress.gold} user={user} onLeaderboard={openLeaderboard}/>
+      <section className="ranking-hero"><p className="eyebrow">명예의 전당</p><h1>한국사 원정대 TOP 10</h1><p>보스 처치 수를 먼저 비교하고, 같으면 총 획득 골드와 현재 보유 골드 순으로 순위를 정합니다.</p></section>
+      <section className="ranking-section">
+        {user?<div className="my-ranking">
+          <div><small>나의 순위</small><strong>{ranking.me?`${ranking.me.rank}위`:"첫 기록을 기다리는 중"}</strong><span>{user.displayName}</span></div>
+          <div><small>총 획득 골드</small><strong>{ranking.me?.totalGold??progress.totalGold} G</strong></div>
+          <div><small>쓰러뜨린 보스</small><strong>{ranking.me?.bossesDefeated??totalDefeated}명</strong></div>
+          <a href={signOutHref}>로그아웃</a>
+        </div>:<div className="signin-panel"><div><strong>내 기록을 순위표에 올리려면 로그인하세요</strong><p>로그인하면 골드와 보스 진행 상황이 계정에 저장되어 다른 기기에서도 이어집니다.</p></div><a href={signInHref}>ChatGPT로 로그인 →</a></div>}
+        <div className="ranking-table">
+          <div className="ranking-head"><span>순위</span><span>도전자</span><span>보스</span><span>총 골드</span><span>진행 상황</span></div>
+          {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중…</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:ranking.players.map(player=><div className={`ranking-row ${ranking.me?.rank===player.rank&&ranking.me.displayName===player.displayName?"mine":""}`} key={`${player.rank}-${player.displayName}`}>
+            <b>{player.rank<=3?["🥇","🥈","🥉"][player.rank-1]:player.rank}</b>
+            <strong>{player.displayName}</strong>
+            <span>{player.bossesDefeated}명</span>
+            <span>{player.totalGold} G</span>
+            <span className="mini-progress"><i style={{width:`${player.bossesDefeated/6*100}%`}}/><small>1강 {player.lesson1Bosses}/3 · 2강 {player.lesson2Bosses}/3</small></span>
+          </div>)}
+        </div>
+        <button className="secondary ranking-back" onClick={()=>setScreen("home")}>← 원정 지도로 돌아가기</button>
+      </section>
+    </main>;
+  }
+
   if(screen==="lesson"){
     const done=defeatedCount(progress,lesson.id);
     const trainingLevel=nextBoss(progress,lesson.id);
-    return <main><Nav home={()=>setScreen("home")} gold={progress.gold}/>
+    return <main><Nav home={()=>setScreen("home")} gold={progress.gold} user={user} onLeaderboard={openLeaderboard}/>
       <section className="lesson-hero">
         <div><p className="eyebrow">{lesson.id}강 보스 원정</p><h1>{lesson.title}</h1><p>5문제 연습으로 골드를 모으고 세 단계의 보스에게 도전하세요. 보스전에서 10문제 중 9문제를 맞히면 승리합니다.</p></div>
         <div className="lesson-stat"><span>보스 처치</span><strong>{done}<small>/3</small></strong><div><i style={{width:`${done/3*100}%`}} /></div></div>
@@ -248,14 +316,14 @@ export default function GameQuizApp(){
     </main>;
   }
 
-  return <main><Nav gold={progress.gold}/>
+  return <main><Nav gold={progress.gold} user={user} onLeaderboard={openLeaderboard}/>
     <section className="home-hero"><div>
       <p className="eyebrow">연습으로 성장하고 보스를 쓰러뜨리는 한국사 문제은행</p>
       <h1>골드를 모으고,<br/><em>역사의 보스를 넘어라</em></h1>
       <p className="hero-desc">5문제 연습으로 골드를 얻고, 각 강의의 세 보스에게 도전하세요. 모든 보스를 쓰러뜨리면 강의별 달인 칭호가 열립니다.</p>
       <button className="primary" onClick={()=>goLesson(lessons[0])}>첫 원정 시작하기 →</button>
     </div>
-    <div className="master"><div><span>나의 현재 칭호</span><span className="gold-text">● {progress.gold} G</span></div><strong>{rank}</strong><section>{["모험가","도전자","사냥꾼","달인"].map((name,i)=><div className={totalDefeated>i||mastered>0?"active":""} key={name}><span>{i+1}</span><small>{name}</small></div>)}</section><p>현재 공개된 2개 강의에서 보스 {totalDefeated}명을 쓰러뜨렸습니다.</p></div>
+    <div className="master"><div><span>나의 현재 칭호</span><span className="gold-text">● {progress.gold} G · 누적 {progress.totalGold} G</span></div><strong>{rank}</strong><section>{["모험가","도전자","사냥꾼","달인"].map((name,i)=><div className={totalDefeated>i||mastered>0?"active":""} key={name}><span>{i+1}</span><small>{name}</small></div>)}</section><p>현재 공개된 2개 강의에서 보스 {totalDefeated}명을 쓰러뜨렸습니다.</p><button className="rank-button" onClick={openLeaderboard}>TOP 10 순위표 보기 →</button></div>
     </section>
     <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 보스 지도</p><h2>강의마다 세 보스가 기다립니다</h2></div><div className="legend"><span><i className="ready-dot"/>원정 가능</span><span><i/>준비 중</span></div></div>
       <div className="lessons">{lessons.map(item=>{const done=defeatedCount(progress,item.id);return <button key={item.id} className={item.status} onClick={()=>goLesson(item)} disabled={item.status==="coming"}><span className="lesson-no">{String(item.id).padStart(2,"0")}</span><div><strong>{item.shortTitle}</strong><span>{item.status==="ready"?`보스 ${done}/3 처치`:"문제 준비 중"}</span></div><b>{done===3?"♛":item.status==="ready"?"→":"·"}</b></button>})}</div>
@@ -264,6 +332,6 @@ export default function GameQuizApp(){
   </main>;
 }
 
-function Nav({home,gold}:{home?:()=>void;gold:number}){
-  return <nav><button className="brand" onClick={home}><span>史</span>한국사 수련장</button><span>기본별개념3 · 30강 보스 원정</span><b className="nav-gold">● {gold} G</b>{home&&<button className="nav-link" onClick={home}>전체 강의</button>}</nav>;
+function Nav({home,gold,user,onLeaderboard}:{home?:()=>void;gold:number;user:User|null;onLeaderboard:()=>void}){
+  return <nav><button className="brand" onClick={home}><span>史</span>한국사 수련장</button><span>기본별개념3 · 30강 보스 원정</span><button className="nav-rank" onClick={onLeaderboard}>TOP 10</button><b className="nav-gold">● {gold} G</b>{user&&<small className="nav-user">{user.displayName}</small>}{home&&<button className="nav-link" onClick={home}>전체 강의</button>}</nav>;
 }
