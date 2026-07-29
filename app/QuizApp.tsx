@@ -33,6 +33,7 @@ export default function QuizApp(){
   const [answers,setAnswers]=useState<Answer[]>([]);
   const [choice,setChoice]=useState<string|null>(null);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(()=>{const saved=localStorage.getItem("history-master-progress-v2");if(saved){try{setProgress({...empty,...JSON.parse(saved)})}catch{setProgress(empty)}}setReady(true)},[]);
   useEffect(()=>{if(ready)localStorage.setItem("history-master-progress-v2",JSON.stringify(progress))},[progress,ready]);
 

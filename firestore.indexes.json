@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "playerProgress",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "rankScore", "order": "DESCENDING" },
+        { "fieldPath": "updatedAt", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
