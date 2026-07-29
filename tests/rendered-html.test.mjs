@@ -50,6 +50,7 @@ test("Firebase authentication offers Google and anonymous sessions",async()=>{
   const [client,button,session,loginPage,game]=await Promise.all([read("app/firebase-client.ts"),read("app/FirebaseAuthButton.tsx"),read("app/api/auth/session/route.ts"),read("app/og-game/page.tsx"),read("app/GameQuizApp.tsx")]);
   assert.match(client,/signInWithPopup\(auth\(\),provider\)/);
   assert.match(client,/firebaseSignInAnonymously\(auth\(\)/);
+  assert.match(client,/process\.env\.NEXT_PUBLIC_FIREBASE_API_KEY\|\|/);
   assert.match(button,/Google로 로그인/);
   assert.match(button,/익명으로 시작/);
   assert.match(session,/createSessionCookie\(idToken/);
