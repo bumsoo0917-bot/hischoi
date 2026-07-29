@@ -26,7 +26,7 @@ npm run build
 
 1. [Firebase Console](https://console.firebase.google.com/)에서 프로젝트를 생성하고 **Firestore Database**를 프로덕션 모드로 활성화합니다.
 2. **프로젝트 설정 → 내 앱 → 웹 앱 추가**에서 웹 앱을 등록합니다.
-3. **Authentication → Sign-in method**에서 Google 공급자를 활성화합니다. 기존 OpenAI workspace의 ChatGPT 로그인 헤더도 계속 지원되므로 해당 환경에서는 Firebase Auth가 없어도 기존 계정을 사용할 수 있습니다.
+3. **Authentication → Sign-in method**에서 Google 공급자와 Anonymous 공급자를 모두 활성화합니다. 기존 OpenAI workspace의 ChatGPT 로그인 헤더도 계속 지원되므로 해당 환경에서는 Firebase Auth가 없어도 기존 계정을 사용할 수 있습니다.
 4. Firebase CLI로 로그인한 로컬 환경에서 대상 프로젝트를 선택한 뒤 규칙과 인덱스를 배포합니다.
 
 ```bash
