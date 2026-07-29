@@ -45,3 +45,15 @@ test("game and account ranking use Firestore-backed ten-lesson persistence",asyn
   assert.match(api,/progressRepository\(\)/);
   assert.match(store,/class FirestoreProgressRepository/);
 });
+
+test("Firebase authentication offers Google and anonymous sessions",async()=>{
+  const [client,button,session,loginPage,game]=await Promise.all([read("app/firebase-client.ts"),read("app/FirebaseAuthButton.tsx"),read("app/api/auth/session/route.ts"),read("app/og-game/page.tsx"),read("app/GameQuizApp.tsx")]);
+  assert.match(client,/signInWithPopup\(auth\(\),provider\)/);
+  assert.match(client,/firebaseSignInAnonymously\(auth\(\)/);
+  assert.match(button,/Google로 로그인/);
+  assert.match(button,/익명으로 시작/);
+  assert.match(session,/createSessionCookie\(idToken/);
+  assert.match(loginPage,/FirebaseAuthButton authenticated=\{false\}/);
+  assert.match(loginPage,/redirect\("\/"\)/);
+  assert.match(game,/href="\/og-game"/);
+});
