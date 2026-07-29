@@ -1,1 +1,0 @@
-ALTER TABLE `player_progress` ADD `collection_json` text DEFAULT '{}' NOT NULL;

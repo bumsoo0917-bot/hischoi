@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 진행 기록과 순위 필드는 신뢰된 Next.js 서버의 Admin SDK만 기록한다.
+    // Admin SDK는 규칙을 우회하므로 클라이언트 SDK에는 읽기/쓰기를 모두 닫는다.
+    match /playerProgress/{userId} {
+      allow read, write: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

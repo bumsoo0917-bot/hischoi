@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import ts from "typescript";
+import {readFile} from "node:fs/promises";
+import vm from "node:vm";
+import {createRequire} from "node:module";
+const nativeRequire=createRequire(import.meta.url);
+async function loadModule(path,imports={}){const source=await readFile(new URL(`../${path}`,import.meta.url),"utf8");const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const sandboxModule={exports:{}};const localRequire=id=>id in imports?imports[id]:nativeRequire(id);vm.runInNewContext(`(function(require,module,exports,structuredClone){${js}\n})(localRequire,sandboxModule,sandboxModule.exports,structuredClone)`,{sandboxModule,structuredClone,localRequire});return sandboxModule.exports;}
+async function modules(){const types=await loadModule("lib/progress/types.ts");const validation=await loadModule("lib/progress/validation.ts",{"../../app/encounters":{encounters:[{id:"l1-map"}]},"./types":types});const memory=await loadModule("lib/progress/memory.ts",{"./validation":validation,"./types":types});return {validation,memory};}
+test("memory repository persists valid practice and boss progress without a network",async()=>{const {memory:{MemoryProgressRepository}}=await modules();const repository=new MemoryProgressRepository();await repository.ensure("u1","가나다");const practice=await repository.saveVerified("u1","가나다",{currentGold:50,totalGold:50,defeated:{},collection:{"l1-map":true},attempts:{"practice-1-1":1}});assert.equal(practice.currentGold,50);const boss=await repository.saveVerified("u1","가나다",{currentGold:20,totalGold:50,defeated:{},collection:practice.collection,attempts:practice.attempts});assert.equal(boss.currentGold,20);});
+test("server transition validation rejects fabricated gold and boss totals",async()=>{const {validation}=await modules();const before={userId:"u",displayName:"u",currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,lessonBosses:{},defeated:{},collection:{},attempts:{},updatedAt:0,rankScore:0};assert.throws(()=>validation.verifyTransition(before,{currentGold:5000,totalGold:5000,defeated:{"1-1":true,"1-2":true},collection:{},attempts:{}}),/허용되지 않는/);});

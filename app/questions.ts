@@ -41,7 +41,7 @@ const history:Fact[]=[
   ["society","사회 분야","신분제와 사람들의 생활 모습, 집단 관계를 다루는 역사 분야이다.","법과 신분, 가족과 풍속, 일상생활을 한 묶음으로 정리했다.","사회사는 제도 아래에서 여러 계층이 실제로 어떻게 살았는지 보여 준다.","PDF 2쪽","overview"],
   ["artifact","유물","과거 사람이 만들거나 사용해 남긴 이동 가능한 물건이다.","토기·도구·무기 같은 물건을 통해 기술과 생활을 추론했다.","유물은 출토된 유적과 층위, 다른 자료와 함께 해석해야 의미가 분명해진다.","PDF 2쪽","overview"],
   ["site-flow","유적과 역사의 흐름","집터·무덤·성곽 같은 장소의 흔적과 유물을 시대 흐름 속에서 함께 해석한다.","유물과 유적을 정치·경제·사회·문화의 변화와 연결했다.","자료를 시대와 분야별로 연결하면 단편 암기가 아니라 역사적 흐름을 이해할 수 있다.","PDF 2쪽","overview"],
-].map(f);
+].map(row=>f(row as Parameters<typeof f>[0]));
 
 const prehistory:Fact[]=[
   ["p-food","구석기 시대의 경제","사냥·채집·고기잡이로 자연에서 먹을거리를 얻었다.","식량 생산 없이 들짐승과 물고기, 열매에 의존했다.","자연환경과 먹을거리 변화에 따라 이동 생활을 하는 원인이 되었다.","PDF 3쪽","prehistory"],
@@ -69,10 +69,10 @@ const prehistory:Fact[]=[
   ["dongye","동예","책화와 족외혼이 있었고 10월에 무천을 열었다.","다른 읍락을 침범하면 소·말·노비로 배상했다.","단궁·과하마·반어피가 특산물이고 읍군·삼로가 다스렸다.","PDF 5쪽","terms"],
   ["samhan","삼한","마한·진한·변한의 여러 소국이 연맹을 이루었다.","신지·읍차가 다스리고 5월과 10월에 계절제를 열었다.","벼농사와 두레가 발달했으며 변한의 철은 낙랑과 왜에 수출됐다.","PDF 5쪽","states"],
   ["sodo","천군과 소도","삼한에서 제사장이 신성 지역을 관리한 제정분리의 모습이다.","정치 지배자인 군장과 별도로 천군이 소도에서 제사를 주관했다.","소도에는 군장의 정치 권력이 미치기 어려워 종교 권력이 분리되어 있었다.","PDF 5쪽","terms"],
-].map(f);
+].map(row=>f(row as Parameters<typeof f>[0]));
 
 const titles=["우리는 왜 역사를 공부하는가","선사 시대~여러 나라의 성장","고대(삼국)","고대(남북국 시대)","고대(경제·사회)","고대(문화1)","고대(문화2)","고려(정치)","고려(외교)","고려(경제·사회)","고려(문화1)","고려(문화2)","조선(전기 정치)","조선(후기 정치)","조선(경제)","조선(사회)","조선(전기 문화)","조선(후기 문화)","개항기(흥선 대원군)","개항기(개항~갑신정변)","개항기(동학 농민 운동~대한 제국)","개항기(국권 피탈과 저항)","개항기(문화)","일제 강점기(식민 통치)","일제 강점기(1910년대 저항)","일제 강점기(1920년대 저항)","일제 강점기(1930년대 이후 저항)","현대(광복~6·25 전쟁)","현대(민주주의의 발전)","현대(경제 발전과 통일 정책)"];
-export const lessons:Lesson[]=titles.map((title,index)=>({id:index+1,title,shortTitle:title,status:index<2?"ready":"coming",videoUrl:index===0?"https://youtu.be/N_f97jxWZM8":index===1?"https://youtu.be/DBVMuINZtVo":undefined}));
+export const lessons:Lesson[]=titles.map((title,index)=>({id:index+1,title,shortTitle:title,status:index<10?"ready":"coming",videoUrl:index===0?"https://youtu.be/N_f97jxWZM8":index===1?"https://youtu.be/DBVMuINZtVo":undefined}));
 
 function objectParticle(word:string){
   const code=word.charCodeAt(word.length-1);
@@ -139,6 +139,23 @@ function build(lessonId:number,facts:Fact[]):Question[]{
     ];
   });
 }
-export const questionBank=[...build(1,history),...build(2,prehistory)];
+import { extendedQuestions } from "./questions-3-10";
+export const questionBank=[...build(1,history),...build(2,prehistory),...extendedQuestions];
+export function validateQuestionBank(questions:Question[]=questionBank){
+  const ids=new Set<string>();
+  for(const question of questions){
+    if(ids.has(question.id))throw new Error(`중복 문제 ID: ${question.id}`);
+    ids.add(question.id);
+    if(question.choices.length!==4||new Set(question.choices).size!==4)throw new Error(`보기는 서로 다른 4개여야 합니다: ${question.id}`);
+    if(question.choices.filter(choice=>choice===question.answer).length!==1)throw new Error(`정답은 정확히 하나여야 합니다: ${question.id}`);
+    if(!question.explanation||!question.noteUrl||!question.sourceUrl.startsWith("https://"))throw new Error(`출처 또는 해설 누락: ${question.id}`);
+    const page=Number(question.page.match(/\d+/)?.[0]);
+    const allowed:Record<number,[number,number]>={3:[6,9],4:[10,11],5:[12,13],6:[14,15],7:[16,17],8:[18,21],9:[22,23],10:[24,25]};
+    if(allowed[question.lessonId]&&(page<allowed[question.lessonId][0]||page>allowed[question.lessonId][1]||question.noteUrl!==`/notes/pdf-${page}.pdf`))throw new Error(`PDF 페이지 범위 오류: ${question.id}`);
+  }
+  for(let lesson=3;lesson<=10;lesson++)if(questions.filter(question=>question.lessonId===lesson).length!==100)throw new Error(`${lesson}강은 정확히 100문항이어야 합니다.`);
+  return true;
+}
+validateQuestionBank();
 export const levelNames:Record<Level,string>={1:"새싹",2:"탐구자",3:"고수",4:"달인"};
 export const levelDescriptions:Record<Level,string>={1:"핵심 용어와 개념",2:"개념과 설명 연결",3:"자료와 상황 적용",4:"비교·분석·함정 판단"};

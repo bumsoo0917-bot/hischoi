@@ -1,5 +1,5 @@
 export type EncounterRole="boss"|"practice";
-export type EncounterType="유물"|"유적"|"역사 자료";
+export type EncounterType="인물"|"유물"|"유적"|"역사 자료";
 
 export type Encounter={
   id:string;
@@ -19,6 +19,24 @@ export type Encounter={
 const overviewUrl="https://contents.history.go.kr/front/ta/print.do?levelId=ta_h41_0030_0010&whereStr=";
 const prehistoryUrl="https://contents.history.go.kr/front/ta/print.do?levelId=ta_m71_0020_0010_0040&whereStr=";
 const metalUrl="https://contents.history.go.kr/eh_kk/teach/notebook/data/03_d14.htm";
+
+const lessonEncounterData:Record<number,{page:number;url:string;items:Array<[string,EncounterRole,EncounterType,string]>}>={
+  3:{page:6,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m51_0040_0020",items:[["광개토 대왕","boss","인물","l3-boss-gwanggaeto.webp"],["근초고왕","boss","인물","l3-boss-geunchogo.webp"],["진흥왕","boss","인물","l3-boss-jinheung.webp"],["장수왕","practice","인물","l3-practice-jangsu.webp"],["성왕","practice","인물","l3-practice-seong.webp"]]},
+  4:{page:10,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m51_0040_0040",items:[["문무왕","boss","인물","l4-boss-munmu.webp"],["신문왕","boss","인물","l4-boss-sinmun.webp"],["대조영","boss","인물","l4-boss-daejoyeong.webp"],["장보고","practice","인물","l4-practice-jangbogo.webp"],["발해 무왕","practice","인물","l4-practice-mu.webp"]]},
+  5:{page:12,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m51_0050",items:[["신라 촌락 문서","boss","역사 자료","l5-boss-village-document.webp"],["신라 금관","boss","유물","l5-boss-gold-crown.webp"],["발해 상경성","boss","유적","l5-boss-sanggyeong.webp"],["동시전 저울","practice","유물","l5-practice-market-scale.webp"],["장보고 무역선","practice","유물","l5-practice-trade-ship.webp"]]},
+  6:{page:14,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m51_0060",items:[["금동 미륵보살 반가사유상","boss","유물","l6-boss-pensive-bodhisattva.webp"],["다보탑","boss","유적","l6-boss-dabotap.webp"],["석굴암 본존불","boss","유물","l6-boss-seokguram.webp"],["미륵사지 석탑","practice","유적","l6-practice-mireuksa.webp"],["발해 영광탑","practice","유적","l6-practice-yeonggwang.webp"]]},
+  7:{page:16,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m51_0060",items:[["첨성대","boss","유적","l7-boss-cheomseongdae.webp"],["무용총 수렵도","boss","역사 자료","l7-boss-hunting.svg"],["백제 금동 대향로","boss","유물","l7-boss-incense.svg"],["천마도","practice","역사 자료","l7-practice-cheonma.svg"],["가야금","practice","유물","l7-practice-gayageum.svg"]]},
+  8:{page:18,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m52_0030",items:[["태조 왕건","boss","인물","l8-boss-wanggeon.svg"],["광종","boss","인물","l8-boss-gwangjong.svg"],["성종","boss","인물","l8-boss-seongjong.svg"],["훈요 10조","practice","역사 자료","l8-practice-hunyo.svg"],["개경 궁궐","practice","유적","l8-practice-palace.svg"]]},
+  9:{page:22,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m52_0040",items:[["서희","boss","인물","l9-boss-seohui.svg"],["강감찬","boss","인물","l9-boss-gang.svg"],["공민왕","boss","인물","l9-boss-gongmin.svg"],["팔만대장경","practice","유물","l9-practice-tripitaka.svg"],["강화산성","practice","유적","l9-practice-fortress.svg"]]},
+  10:{page:24,url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m52_0050",items:[["벽란도","boss","유적","l10-boss-byeokrando.svg"],["은병 활구","boss","유물","l10-boss-silver.svg"],["전시과 문서","boss","역사 자료","l10-boss-jeonsigwa.svg"],["고려청자 운송선","practice","유물","l10-practice-ship.svg"],["의창 곡식 창고","practice","유적","l10-practice-granary.svg"]]},
+};
+
+const extendedEncounters:Encounter[]=Object.entries(lessonEncounterData).flatMap(([lesson,data])=>data.items.map(([name,role,type,file],index)=>({
+  id:`l${lesson}-${role}-${index+1}`,lessonId:Number(lesson),role,level:role==="boss"?(index+1) as 1|2|3:undefined,name,type,
+  image:`/encounters/${file}`,page:`PDF ${data.page}쪽`,noteUrl:`/notes/pdf-${data.page}.pdf`,sourceUrl:data.url,
+  summary:`${Number(lesson)}강의 핵심 ${type}인 ${name}입니다. 강의 필기의 시대적 맥락과 함께 살펴보세요.`,
+  examTip:`${name}의 특징과 관련 사건·제도를 같은 시대의 유사 개념과 구별하세요.`,
+})));
 
 export const encounters:Encounter[]=[
   {
@@ -91,6 +109,7 @@ export const encounters:Encounter[]=[
     examTip:"비파형 동검의 분포는 고조선의 문화 범위를 파악하는 단서입니다.",
     noteUrl:"/notes/pdf-3.pdf",sourceUrl:metalUrl,
   },
+  ...extendedEncounters,
 ];
 
 export const encounterById=(id:string)=>encounters.find(item=>item.id===id);

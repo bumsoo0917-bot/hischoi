@@ -56,3 +56,4 @@ footer{min-height:220px;background:var(--navy);color:#cdd4df;display:flex;align-
 @media(prefers-reduced-motion:reduce){.battle-opponent.hit img,.battle-opponent.counter{animation:none}}
 @media(max-width:850px){.collection-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.collection-section{padding:40px 15px}.collection-grid article{grid-template-columns:112px 1fr;gap:13px;min-height:142px}.collection-grid article>img,.locked-art{width:112px;height:112px}.collection-grid p,.collection-grid b{display:none}.battle-opponent{grid-template-columns:70px 1fr auto}.battle-opponent img{width:70px;height:58px}.question{padding-top:20px}.bosses article{min-height:400px}}
+.auth-button{border:0;background:var(--ink);color:#fff;padding:10px 14px;font:inherit;font-weight:800;cursor:pointer}.auth-button:disabled{opacity:.55;cursor:wait}

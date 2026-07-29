@@ -43,3 +43,5 @@ next-env.d.ts
 /.npm-cache/
 /.devserver.log
 /site-package.tar.gz
+
+!.env.example
