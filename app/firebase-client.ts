@@ -9,7 +9,13 @@ import {
   type UserCredential,
 } from "firebase/auth";
 
-const config={apiKey:process.env.NEXT_PUBLIC_FIREBASE_API_KEY,authDomain:process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,projectId:process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,appId:process.env.NEXT_PUBLIC_FIREBASE_APP_ID};
+// Firebase Web app identifiers are public by design. Vercel values override these defaults when present.
+const config={
+  apiKey:process.env.NEXT_PUBLIC_FIREBASE_API_KEY||"AIzaSyBPP3SSqROq_oIv2G-8GA8E22RMd7_cOSI",
+  authDomain:process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN||"hischoi.firebaseapp.com",
+  projectId:process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID||"hischoi",
+  appId:process.env.NEXT_PUBLIC_FIREBASE_APP_ID||"1:141461201243:web:dc128031219b0fd334ba7e",
+};
 export const firebaseClientConfigured=Object.values(config).every(Boolean);
 const auth=()=>getAuth(getApps().length?getApp():initializeApp(config));
 
