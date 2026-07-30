@@ -4,6 +4,7 @@ import {
   authErrorMessage,
   clearSession,
   firebaseClientConfigured,
+  firebaseConfigurationError,
   signInAsGuest,
   signInWithGoogle,
 } from "./firebase-client";
@@ -26,18 +27,18 @@ export default function FirebaseAuthButton({
   }
 
   if(authenticated&&!firebaseUser)return <a href={fallbackHref}>로그아웃</a>;
-  if(!firebaseClientConfigured)return <a href={fallbackHref}>{authenticated?"로그아웃":"ChatGPT로 로그인"}</a>;
   if(firebaseUser)return <button className="auth-button" disabled={busy!==null} onClick={()=>run("logout",clearSession)}>
     {busy==="logout"?"처리 중…":anonymousUser?"익명 로그아웃":"로그아웃"}
   </button>;
 
   return <div className="auth-actions">
-    <button className="auth-button auth-google" disabled={busy!==null} onClick={()=>run("google",signInWithGoogle)}>
+    <button className="auth-button auth-google" data-testid="google-login" disabled={busy!==null||!firebaseClientConfigured} onClick={()=>run("google",signInWithGoogle)}>
       {busy==="google"?"연결 중…":<><span aria-hidden="true">G</span>Google로 로그인</>}
     </button>
-    <button className="auth-button auth-anonymous" disabled={busy!==null} onClick={()=>run("anonymous",signInAsGuest)}>
+    <button className="auth-button auth-anonymous" data-testid="anonymous-login" disabled={busy!==null||!firebaseClientConfigured} onClick={()=>run("anonymous",signInAsGuest)}>
       {busy==="anonymous"?"준비 중…":"익명으로 시작"}
     </button>
+    {firebaseConfigurationError&&<p className="auth-error" role="alert">{firebaseConfigurationError}</p>}
     {error&&<p className="auth-error" role="alert">{error}</p>}
   </div>;
 }

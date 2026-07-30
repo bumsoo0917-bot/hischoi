@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { bossEncounter, encounterById, encounters, practiceEncounters } from "./encounters";
 import { Lesson, Question, lessons, questionBank } from "./questions";
@@ -267,7 +268,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
       <section className="simple-hero"><p className="eyebrow">명예의 전당</p><h1>한국사 원정대 TOP 10</h1><p>보스 처치 수, 총 획득 골드, 보유 골드 순으로 정합니다.</p></section>
       <section className="ranking-section">
         {user?<div className="my-ranking"><div><small>나의 순위</small><strong>{ranking.me?`${ranking.me.rank}위`:"기록 대기 중"}</strong><span>{user.displayName}{anonymousUser?" · 이 브라우저에서만 이어집니다.":""}</span></div><div><small>총 골드</small><strong>{ranking.me?.totalGold??progress.totalGold} G</strong></div><div><small>보스</small><strong>{ranking.me?.bossesDefeated??totalDefeated}명</strong></div><FirebaseAuthButton authenticated firebaseUser={firebaseUser} anonymousUser={anonymousUser} fallbackHref={signOutHref}/></div>
-          :<div className="signin-panel"><div><strong>로그인하면 기록이 계정에 저장됩니다.</strong><p>Google 계정 또는 익명 계정으로 골드와 보스 진행 상황을 저장할 수 있습니다.</p></div><a className="auth-page-link" href="/og-game">로그인하기</a></div>}
+          :<div className="signin-panel"><div><strong>로그인하면 기록이 계정에 저장됩니다.</strong><p>Google 계정 또는 익명 계정으로 골드와 보스 진행 상황을 저장할 수 있습니다.</p></div><Link className="auth-page-link" href="/">로그인하기</Link></div>}
         <div className="ranking-table"><div className="ranking-head"><span>순위</span><span>도전자</span><span>보스</span><span>총 골드</span><span>진행</span></div>
           {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중...</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:ranking.players.map(player=><div className="ranking-row" key={`${player.rank}-${player.displayName}`}><b>{player.rank}</b><strong>{player.displayName}</strong><span>{player.bossesDefeated}명</span><span>{player.totalGold} G</span><span className="mini-progress"><i style={{width:`${player.bossesDefeated/30*100}%`}}/><small>완료 강의 {Object.values(player.lessonBosses??{}).filter(count=>count===3).length}/10</small></span></div>)}
         </div>

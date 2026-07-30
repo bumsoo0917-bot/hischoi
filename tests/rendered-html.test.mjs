@@ -46,15 +46,42 @@ test("game and account ranking use Firestore-backed ten-lesson persistence",asyn
   assert.match(store,/class FirestoreProgressRepository/);
 });
 
-test("Firebase authentication offers Google and anonymous sessions",async()=>{
-  const [client,button,session,loginPage,game]=await Promise.all([read("app/firebase-client.ts"),read("app/FirebaseAuthButton.tsx"),read("app/api/auth/session/route.ts"),read("app/og-game/page.tsx"),read("app/GameQuizApp.tsx")]);
+test("signed-out root offers Google and anonymous sessions while signed-in users see the game",async()=>{
+  const [client,button,session,loginScreen,home,game]=await Promise.all([
+    read("app/firebase-client.ts"),
+    read("app/FirebaseAuthButton.tsx"),
+    read("app/api/auth/session/route.ts"),
+    read("app/LoginScreen.tsx"),
+    read("app/page.tsx"),
+    read("app/GameQuizApp.tsx"),
+  ]);
   assert.match(client,/signInWithPopup\(auth\(\),provider\)/);
   assert.match(client,/firebaseSignInAnonymously\(auth\(\)/);
   assert.match(client,/process\.env\.NEXT_PUBLIC_FIREBASE_API_KEY\|\|/);
+  assert.match(loginScreen,/FirebaseAuthButton authenticated=\{false\}/);
+  assert.match(button,/data-testid="google-login"/);
   assert.match(button,/Google로 로그인/);
+  assert.match(button,/data-testid="anonymous-login"/);
   assert.match(button,/익명으로 시작/);
+  assert.match(home,/if\(!user\)return <LoginScreen\/>/);
+  assert.match(home,/return <GameQuizApp/);
   assert.match(session,/createSessionCookie\(idToken/);
-  assert.match(loginPage,/FirebaseAuthButton authenticated=\{false\}/);
+  assert.match(game,/FirebaseAuthButton authenticated firebaseUser=\{firebaseUser\} anonymousUser=\{anonymousUser\}/);
+});
+
+test("/og-game redirects to the single root login entry point",async()=>{
+  const loginPage=await read("app/og-game/page.tsx");
   assert.match(loginPage,/redirect\("\/"\)/);
-  assert.match(game,/href="\/og-game"/);
+  assert.doesNotMatch(loginPage,/FirebaseAuthButton|game-login-card/);
+});
+
+test("Firebase setup and provider failures remain visible and actionable",async()=>{
+  const [client,button]=await Promise.all([read("app/firebase-client.ts"),read("app/FirebaseAuthButton.tsx")]);
+  assert.match(client,/validateFirebaseConfig/);
+  assert.match(client,/unauthorized-domain/);
+  assert.match(client,/operation-not-allowed/);
+  assert.match(client,/popup-blocked/);
+  assert.match(client,/admin-restricted-operation/);
+  assert.match(button,/firebaseConfigurationError&&<p className="auth-error" role="alert">/);
+  assert.match(button,/disabled=\{busy!==null\|\|!firebaseClientConfigured\}/);
 });
