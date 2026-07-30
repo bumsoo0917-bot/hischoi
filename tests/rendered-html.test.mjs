@@ -78,10 +78,18 @@ test("/og-game redirects to the single root login entry point",async()=>{
 test("Firebase setup and provider failures remain visible and actionable",async()=>{
   const [client,button]=await Promise.all([read("app/firebase-client.ts"),read("app/FirebaseAuthButton.tsx")]);
   assert.match(client,/validateFirebaseConfig/);
+  assert.match(client,/NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET\|\|"hischoi\.firebasestorage\.app"/);
+  assert.match(client,/NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID\|\|"141461201243"/);
   assert.match(client,/unauthorized-domain/);
   assert.match(client,/operation-not-allowed/);
   assert.match(client,/popup-blocked/);
   assert.match(client,/admin-restricted-operation/);
   assert.match(button,/firebaseConfigurationError&&<p className="auth-error" role="alert">/);
   assert.match(button,/disabled=\{busy!==null\|\|!firebaseClientConfigured\}/);
+});
+
+test("production metadata falls back to the current Vercel address",async()=>{
+  const layout=await read("app/layout.tsx");
+  assert.match(layout,/process\.env\.NEXT_PUBLIC_SITE_URL/);
+  assert.match(layout,/https:\/\/hischoi\.vercel\.app/);
 });

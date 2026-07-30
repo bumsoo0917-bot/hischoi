@@ -45,7 +45,10 @@ npx firebase-tools deploy --only firestore:rules,firestore:indexes
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
 - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `NEXT_PUBLIC_SITE_URL` — production URL, currently `https://hischoi.vercel.app`
 
 서버 전용 Firebase Admin 설정:
 

@@ -14,6 +14,8 @@ const config={
   apiKey:process.env.NEXT_PUBLIC_FIREBASE_API_KEY||"AIzaSyBPP3SSqROq_oIv2G-8GA8E22RMd7_cOSI",
   authDomain:process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN||"hischoi.firebaseapp.com",
   projectId:process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID||"hischoi",
+  storageBucket:process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET||"hischoi.firebasestorage.app",
+  messagingSenderId:process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID||"141461201243",
   appId:process.env.NEXT_PUBLIC_FIREBASE_APP_ID||"1:141461201243:web:dc128031219b0fd334ba7e",
 };
 export const firebaseConfigurationError=validateFirebaseConfig(config);
