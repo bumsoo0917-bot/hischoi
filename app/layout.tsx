@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl=process.env.VERCEL_PROJECT_PRODUCTION_URL?`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`:"http://localhost:3000";
+const siteUrl=process.env.NEXT_PUBLIC_SITE_URL
+  ||(process.env.VERCEL_PROJECT_PRODUCTION_URL?`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`:undefined)
+  ||(process.env.NODE_ENV==="production"?"https://hischoi.vercel.app":"http://localhost:3000");
 export const metadata:Metadata={metadataBase:new URL(siteUrl),
   title:"한국사 수련장 | 30강 보스 원정",
   description:"5문제 연습으로 골드를 모으고 세 단계의 한국사 보스를 쓰러뜨려 강의별 달인에 도전하세요.",
