@@ -42,6 +42,18 @@ type LaterEncounterData={
   lessonId:number; name:string; role:EncounterRole; type:EncounterType; file:string; page:number;
   summary:string; examTip:string; sourceUrl:string;
 };
+const official:Record<number,{url:string}>={
+  21:{url:"https://contents.history.go.kr/front/ta/print.do?levelId=ta_m62_0050_0030&whereStr="},
+  22:{url:"https://contents.history.go.kr/eh_kk/teach/tong/III/23.htm"},
+  23:{url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m52_0040_0060"},
+  24:{url:"https://contents.history.go.kr/mobile/eh/view.do?code=ganada&levelId=eh_r0334_0010"},
+  25:{url:"https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m62_0070_0020"},
+  26:{url:"https://contents.history.go.kr/data/pdf/eh/eh_r0336_0010.pdf"},
+  27:{url:"https://contents.history.go.kr/mobile/mid/ta_h71_0040_0050_0030_0040"},
+  28:{url:"https://contents.history.go.kr/front/ta/print.do?levelId=ta_m62_0080_0010&whereStr="},
+  29:{url:"https://contents.history.go.kr/front/ta/print.do?levelId=ta_m62_0080_0020&whereStr="},
+  30:{url:"https://contents.history.go.kr/mobile/eh/view.do?code=ganada&levelId=eh_r0404_0010"},
+};
 const laterEncounterData:LaterEncounterData[]=[
   {lessonId:11,name:"의천",role:"boss",type:"인물",file:"l11-boss-uicheon.webp",page:26,summary:"교종을 중심으로 선종을 통합하고 해동 천태종을 창시한 고려의 승려입니다.",examTip:"교관겸수·해동 천태종은 의천, 정혜쌍수·돈오점수는 지눌과 연결하세요.",sourceUrl:"https://contents.history.go.kr/front/ta/view.do?levelId=ta_h71_0070_0020"},
   {lessonId:11,name:"지눌",role:"boss",type:"인물",file:"l11-boss-jinul.webp",page:26,summary:"수선사 결사를 이끌며 선종 중심의 불교 개혁을 추진한 고려의 승려입니다.",examTip:"정혜쌍수·돈오점수·수선사 결사를 한 묶음으로 기억하세요.",sourceUrl:"https://contents.history.go.kr/front/ta/view.do?levelId=ta_h71_0070_0020"},
@@ -102,6 +114,66 @@ const laterEncounterData:LaterEncounterData[]=[
   {lessonId:20,name:"우정총국",role:"boss",type:"유적",file:"l20-boss-post-office.webp",page:49,summary:"갑신정변 세력이 개국 축하연을 이용해 정변을 시작한 근대 우편 기관입니다.",examTip:"1884년 갑신정변과 김옥균·박영효·홍영식 등 급진 개화파를 연결하세요.",sourceUrl:"https://contents.history.go.kr/front/ta/view.do?levelId=ta_m62_0050_0020"},
   {lessonId:20,name:"별기군 병사",role:"practice",type:"인물",file:"l20-practice-byeolgigun.webp",page:48,summary:"일본인 교관에게 신식 무기와 군사 훈련을 받은 조선의 신식 군대 병사입니다.",examTip:"별기군과 구식 군인의 차별 대우는 임오군란의 중요한 배경입니다.",sourceUrl:"https://contents.history.go.kr/front/ta/view.do?levelId=ta_m62_0050_0020"},
   {lessonId:20,name:"영선사 기술자",role:"practice",type:"인물",file:"l20-practice-yeongseonsa.webp",page:48,summary:"청의 톈진에서 근대 무기 제조 기술을 배우고 기기창 설치에 기여한 사절단 인물입니다.",examTip:"청에는 영선사, 일본에는 조사 시찰단을 파견했습니다.",sourceUrl:"https://contents.history.go.kr/front/ta/view.do?levelId=ta_m62_0050_0020"},
+
+  {lessonId:21,name:"전봉준",role:"boss",type:"인물",file:"l21-boss-jeonbongjun.webp",page:50,summary:"1894년 동학 농민군을 이끌고 보국안민·제폭구민을 내세운 지도자입니다.",examTip:"고부 봉기·백산 봉기·황토현 전투·우금치 전투의 흐름과 연결하세요.",sourceUrl:official[21].url},
+  {lessonId:21,name:"집강소",role:"boss",type:"유적",file:"l21-boss-jipgangso.webp",page:50,summary:"전주 화약 뒤 농민군이 전라도 각지에서 폐정 개혁을 실행한 자치 기구입니다.",examTip:"중앙 개혁 기구 군국기무처와 설치 주체를 구별하세요.",sourceUrl:official[21].url},
+  {lessonId:21,name:"독립문",role:"boss",type:"유적",file:"l21-boss-independence-gate.webp",page:51,summary:"독립 협회가 자주독립 의식을 높이기 위해 영은문 자리에 세운 문입니다.",examTip:"독립신문·독립문·만민공동회를 독립 협회와 묶어 기억하세요.",sourceUrl:official[21].url},
+  {lessonId:21,name:"군국기무처 의안",role:"practice",type:"역사 자료",file:"l21-practice-gunguk.webp",page:50,summary:"갑오개혁의 정치·경제·사회 개혁안을 심의한 군국기무처의 문서를 상징합니다.",examTip:"동학 농민군의 폐정 개혁안과 갑오개혁의 제도 개혁을 구별하세요.",sourceUrl:official[21].url},
+  {lessonId:21,name:"광무 황제 고종",role:"practice",type:"인물",file:"l21-practice-gojong-emperor.webp",page:51,summary:"대한 제국을 선포하고 구본신참 원칙의 광무개혁을 추진한 황제입니다.",examTip:"원수부·양전 사업·지계 발급·상공업 진흥을 광무개혁과 연결하세요.",sourceUrl:official[21].url},
+
+  {lessonId:22,name:"안중근",role:"boss",type:"인물",file:"l22-boss-anjunggeun.webp",page:52,summary:"1909년 하얼빈역에서 이토 히로부미를 처단한 독립운동가입니다.",examTip:"동양 평화론과 단지 동맹, 하얼빈 의거를 함께 기억하세요.",sourceUrl:official[22].url},
+  {lessonId:22,name:"13도 창의군",role:"boss",type:"인물",file:"l22-boss-righteous-army.webp",page:52,summary:"이인영을 총대장으로 삼아 서울 진공 작전을 추진한 의병 연합 부대입니다.",examTip:"정미의병과 해산 군인의 합류를 연결하세요.",sourceUrl:official[22].url},
+  {lessonId:22,name:"을사늑약 문서",role:"boss",type:"역사 자료",file:"l22-boss-eulsa-treaty.webp",page:52,summary:"1905년 대한 제국의 외교권을 빼앗고 통감부를 설치한 강제 조약 문서입니다.",examTip:"을사늑약-외교권, 한일 신협약-내정권, 기유각서-사법권을 구별하세요.",sourceUrl:official[22].url},
+  {lessonId:22,name:"신민회",role:"practice",type:"역사 자료",file:"l22-practice-sinminhoe.webp",page:52,summary:"공화정 수립과 독립군 기지 건설을 추진한 비밀 결사를 상징합니다.",examTip:"안창호·양기탁, 오산학교·대성학교, 자기회사·태극서관을 묶으세요.",sourceUrl:official[22].url},
+  {lessonId:22,name:"헤이그 특사 이준",role:"practice",type:"인물",file:"l22-practice-leejun.webp",page:52,summary:"을사늑약의 부당함을 알리려고 헤이그 만국 평화 회의에 파견된 특사입니다.",examTip:"이상설·이위종과 함께 파견되었고 고종 강제 퇴위의 구실이 되었습니다.",sourceUrl:official[22].url},
+
+  {lessonId:23,name:"독립신문",role:"boss",type:"역사 자료",file:"l23-boss-independent.webp",page:55,summary:"서재필이 창간한 최초의 민간 신문으로 한글판과 영문판을 발행했습니다.",examTip:"정부 발행 한성순보와 민간 발행 독립신문을 구별하세요.",sourceUrl:official[23].url},
+  {lessonId:23,name:"경인선 증기기관차",role:"boss",type:"유물",file:"l23-boss-railway.webp",page:55,summary:"1899년 노량진과 제물포를 잇는 우리나라 최초의 철도를 상징합니다.",examTip:"경인선-1899, 경부선-1905, 경의선-1906을 구별하세요.",sourceUrl:official[23].url},
+  {lessonId:23,name:"대한매일신보",role:"boss",type:"역사 자료",file:"l23-boss-daehan-daily.webp",page:55,summary:"양기탁과 베델이 발행해 국채 보상 운동과 항일 언론 활동을 지원한 신문입니다.",examTip:"황성신문의 시일야방성대곡과 발행 인물을 구별하세요.",sourceUrl:official[23].url},
+  {lessonId:23,name:"원산학사",role:"practice",type:"유적",file:"l23-practice-wonsan-school.webp",page:55,summary:"1883년 원산 주민이 세운 우리나라 최초의 근대식 사립 학교입니다.",examTip:"민간 설립 원산학사와 정부의 동문학·육영공원을 구별하세요.",sourceUrl:official[23].url},
+  {lessonId:23,name:"주시경",role:"practice",type:"인물",file:"l23-practice-jusigyeong.webp",page:56,summary:"국문 연구소와 조선어 연구에 참여해 한글의 체계화에 힘쓴 학자입니다.",examTip:"국문 연구소·국어 문법·말모이와 연결하세요.",sourceUrl:official[23].url},
+
+  {lessonId:24,name:"조선 총독부 청사",role:"boss",type:"유적",file:"l24-boss-government-general.webp",page:57,summary:"입법·행정·사법·군사권을 장악한 일제 식민 통치의 중심 기관을 상징합니다.",examTip:"총독은 일본 천황에게 직속되었고 육해군 대장 출신이 임명되었습니다.",sourceUrl:official[24].url},
+  {lessonId:24,name:"헌병 경찰",role:"boss",type:"인물",file:"l24-boss-military-police.webp",page:57,summary:"1910년대 무단 통치 아래 일반 경찰 업무까지 맡은 헌병 경찰입니다.",examTip:"헌병 경찰제·태형령·즉결 처분권을 무단 통치와 연결하세요.",sourceUrl:official[24].url},
+  {lessonId:24,name:"황국 신민 서사",role:"boss",type:"역사 자료",file:"l24-boss-imperial-oath.webp",page:57,summary:"한국인에게 일본 천황의 신민임을 외우도록 강요한 민족 말살 정책의 자료입니다.",examTip:"신사 참배·창씨개명·우리말 금지와 함께 정리하세요.",sourceUrl:official[24].url},
+  {lessonId:24,name:"토지 조사부",role:"practice",type:"역사 자료",file:"l24-practice-land-ledger.webp",page:57,summary:"신고주의로 토지 소유권을 조사해 식민지 지주제를 강화한 사업의 문서입니다.",examTip:"토지 조사 사업과 산미 증식 계획의 시기와 목적을 구별하세요.",sourceUrl:official[24].url},
+  {lessonId:24,name:"산미 증식 쌀가마",role:"practice",type:"유물",file:"l24-practice-rice-sacks.webp",page:57,summary:"한국의 쌀을 증산해 일본으로 반출한 산미 증식 계획을 상징합니다.",examTip:"증산량보다 반출량이 더 크게 늘어 한국인의 식량 사정이 악화되었습니다.",sourceUrl:official[24].url},
+
+  {lessonId:25,name:"3·1 독립선언서",role:"boss",type:"역사 자료",file:"l25-boss-declaration.webp",page:58,summary:"1919년 민족 대표가 독립을 선언하고 전국적 만세 운동의 시작을 알린 문서입니다.",examTip:"2·8 독립 선언과 3·1 독립 선언의 장소와 주체를 구별하세요.",sourceUrl:official[25].url},
+  {lessonId:25,name:"대한민국 임시 정부 청사",role:"boss",type:"유적",file:"l25-boss-provisional-gov.webp",page:59,summary:"1919년 상하이에 수립되어 민주 공화제를 채택한 임시 정부를 상징합니다.",examTip:"연통제·교통국·독립 공채·구미위원부를 함께 기억하세요.",sourceUrl:official[25].url},
+  {lessonId:25,name:"안창호",role:"boss",type:"인물",file:"l25-boss-ahnchangho.webp",page:58,summary:"신민회와 흥사단을 이끌고 실력 양성과 독립 운동 조직에 힘쓴 인물입니다.",examTip:"대성학교·자기회사·신민회·흥사단과 연결하세요.",sourceUrl:official[25].url},
+  {lessonId:25,name:"신흥 무관 학교 생도",role:"practice",type:"인물",file:"l25-practice-military-school.webp",page:58,summary:"서간도에서 독립군 간부 교육을 받은 신흥 무관 학교 생도입니다.",examTip:"경학사·삼원보·신민회 계열의 독립군 기지 건설과 연결하세요.",sourceUrl:official[25].url},
+  {lessonId:25,name:"유관순",role:"practice",type:"인물",file:"l25-practice-yugwansun.webp",page:58,summary:"아우내 장터 만세 시위를 이끌고 옥중에서도 독립 의지를 굽히지 않은 인물입니다.",examTip:"3·1 운동의 전국적·대중적 확산을 보여 주는 대표 인물입니다.",sourceUrl:official[25].url},
+
+  {lessonId:26,name:"신간회",role:"boss",type:"역사 자료",file:"l26-boss-singanhoe.webp",page:60,summary:"비타협적 민족주의와 사회주의 세력이 만든 민족 유일당 성격의 합법 단체입니다.",examTip:"정우회 선언·광주 학생 항일 운동 지원·전국 지회를 연결하세요.",sourceUrl:official[26].url},
+  {lessonId:26,name:"김원봉",role:"boss",type:"인물",file:"l26-boss-kimwonbong.webp",page:60,summary:"의열단을 조직하고 조선 의용대를 창설한 무장 독립 운동가입니다.",examTip:"김원봉-의열단·조선 의용대, 김구-한인 애국단·한국 광복군을 구별하세요.",sourceUrl:official[26].url},
+  {lessonId:26,name:"광주 학생 항일 운동",role:"boss",type:"역사 자료",file:"l26-boss-gwangju-students.webp",page:60,summary:"1929년 나주역 한일 학생 충돌에서 시작해 전국으로 확산된 학생 운동입니다.",examTip:"신간회의 진상 조사단 파견과 민중 대회 계획을 연결하세요.",sourceUrl:official[26].url},
+  {lessonId:26,name:"방정환",role:"practice",type:"인물",file:"l26-practice-bangjeonghwan.webp",page:60,summary:"어린이날을 제정하고 어린이 인권을 높이는 소년 운동을 이끈 인물입니다.",examTip:"천도교 소년회와 잡지 『어린이』를 함께 기억하세요.",sourceUrl:official[26].url},
+  {lessonId:26,name:"조선어 연구회 회보",role:"practice",type:"역사 자료",file:"l26-practice-korean-language.webp",page:61,summary:"가갸날 제정과 한글 맞춤법 연구를 추진한 민족 문화 운동을 상징합니다.",examTip:"조선어 연구회가 조선어 학회로 발전한 흐름을 확인하세요.",sourceUrl:official[26].url},
+
+  {lessonId:27,name:"윤봉길",role:"boss",type:"인물",file:"l27-boss-yunbonggil.webp",page:62,summary:"상하이 훙커우 공원 의거로 중국 국민당 정부의 임시 정부 지원을 이끌어 낸 인물입니다.",examTip:"한인 애국단·1932년·훙커우 공원을 묶으세요.",sourceUrl:official[27].url},
+  {lessonId:27,name:"한국 광복군",role:"boss",type:"인물",file:"l27-boss-liberation-army.webp",page:62,summary:"1940년 충칭에서 임시 정부가 창설한 정규 군대입니다.",examTip:"지청천 총사령관·국내 진공 작전·미국 OSS 협력을 연결하세요.",sourceUrl:official[27].url},
+  {lessonId:27,name:"조선 의용대",role:"boss",type:"인물",file:"l27-boss-volunteer-corps.webp",page:62,summary:"1938년 김원봉이 중국 관내에서 창설한 최초의 한인 군사 조직입니다.",examTip:"한국 광복군보다 먼저 창설되었고 일부가 광복군에 합류했습니다.",sourceUrl:official[27].url},
+  {lessonId:27,name:"이봉창",role:"practice",type:"인물",file:"l27-practice-leebongchang.webp",page:62,summary:"1932년 도쿄에서 일본 국왕의 행렬에 폭탄을 던진 한인 애국단원입니다.",examTip:"이봉창-도쿄, 윤봉길-상하이 훙커우 공원을 구별하세요.",sourceUrl:official[27].url},
+  {lessonId:27,name:"조선어 학회 사전 원고",role:"practice",type:"역사 자료",file:"l27-practice-dictionary.webp",page:62,summary:"우리말 큰사전 편찬을 추진하다 일제의 조선어 학회 사건으로 탄압받은 원고입니다.",examTip:"1942년 조선어 학회 사건과 민족 문화 수호 운동을 연결하세요.",sourceUrl:official[27].url},
+
+  {lessonId:28,name:"대한민국 정부 수립 태극기",role:"boss",type:"역사 자료",file:"l28-boss-government.webp",page:65,summary:"1948년 8월 15일 대한민국 정부 수립을 상징하는 태극기입니다.",examTip:"5·10 총선거-제헌 국회-제헌 헌법-정부 수립의 순서를 잡으세요.",sourceUrl:official[28].url},
+  {lessonId:28,name:"6·25 전쟁 철모",role:"boss",type:"유물",file:"l28-boss-war-helmet.webp",page:65,summary:"북한군의 남침으로 시작된 6·25 전쟁과 유엔군 참전을 상징하는 철모입니다.",examTip:"낙동강 방어선·인천 상륙 작전·중국군 개입·정전 협정의 순서를 확인하세요.",sourceUrl:official[28].url},
+  {lessonId:28,name:"정전 협정문",role:"boss",type:"역사 자료",file:"l28-boss-armistice.webp",page:65,summary:"1953년 전투 중지와 군사분계선·비무장 지대 설치를 규정한 문서입니다.",examTip:"평화 조약이 아니라 정전 협정이라는 점을 놓치지 마세요.",sourceUrl:official[28].url},
+  {lessonId:28,name:"김구",role:"practice",type:"인물",file:"l28-practice-kimgu.webp",page:64,summary:"남한 단독 정부 수립을 반대하고 김규식과 함께 남북 협상을 추진한 인물입니다.",examTip:"대한민국 임시 정부·한인 애국단·남북 협상과 연결하세요.",sourceUrl:official[28].url},
+  {lessonId:28,name:"여운형",role:"practice",type:"인물",file:"l28-practice-yeounhyeong.webp",page:64,summary:"조선 건국 동맹과 건국 준비 위원회를 이끌고 좌우 합작 운동을 추진한 인물입니다.",examTip:"김규식과 좌우 합작 위원회를 이끈 점을 기억하세요.",sourceUrl:official[28].url},
+
+  {lessonId:29,name:"4·19 혁명 학생",role:"boss",type:"인물",file:"l29-boss-april-revolution.webp",page:66,summary:"3·15 부정 선거와 독재에 맞서 민주주의를 되찾은 학생과 시민을 상징합니다.",examTip:"김주열의 희생과 이승만 하야, 장면 내각 출범을 연결하세요.",sourceUrl:official[29].url},
+  {lessonId:29,name:"5·18 민주화 운동 시민",role:"boss",type:"인물",file:"l29-boss-gwangju-democracy.webp",page:68,summary:"1980년 광주에서 계엄 확대와 신군부에 맞서 민주화를 요구한 시민을 상징합니다.",examTip:"12·12 사태-서울의 봄-계엄 확대-5·18의 흐름을 잡으세요.",sourceUrl:official[29].url},
+  {lessonId:29,name:"6월 민주 항쟁 시민",role:"boss",type:"인물",file:"l29-boss-june-struggle.webp",page:68,summary:"1987년 대통령 직선제와 민주화를 요구한 전국적 시민 항쟁을 상징합니다.",examTip:"박종철 고문 치사·이한열 희생·6·29 선언·9차 개헌을 연결하세요.",sourceUrl:official[29].url},
+  {lessonId:29,name:"장면",role:"practice",type:"인물",file:"l29-practice-jangmyeon.webp",page:66,summary:"4·19 혁명 뒤 제2공화국의 내각 책임제 정부를 이끈 국무총리입니다.",examTip:"제3차 개헌·양원제·내각 책임제와 연결하세요.",sourceUrl:official[29].url},
+  {lessonId:29,name:"박종철",role:"practice",type:"인물",file:"l29-practice-parkjongcheol.webp",page:68,summary:"경찰 고문으로 숨져 1987년 6월 민주 항쟁의 도화선이 된 대학생입니다.",examTip:"고문 치사 사건 은폐 폭로와 6월 항쟁의 인과 관계를 확인하세요.",sourceUrl:official[29].url},
+
+  {lessonId:30,name:"새마을기",role:"boss",type:"유물",file:"l30-boss-saemaeul.webp",page:69,summary:"근면·자조·협동을 내세운 1970년대 새마을 운동을 상징하는 깃발입니다.",examTip:"농촌 생활 환경 개선과 소득 증대 정책을 함께 기억하세요.",sourceUrl:official[30].url},
+  {lessonId:30,name:"포항제철 용광로",role:"boss",type:"유적",file:"l30-boss-steelworks.webp",page:69,summary:"1970년대 철강·조선·기계 중심 중화학 공업화를 상징합니다.",examTip:"1960년대 경공업 수출과 1970년대 중화학 공업을 구별하세요.",sourceUrl:official[30].url},
+  {lessonId:30,name:"6·15 공동 선언 악수",role:"boss",type:"역사 자료",file:"l30-boss-summit.webp",page:70,summary:"2000년 첫 남북 정상 회담과 6·15 남북 공동 선언을 상징합니다.",examTip:"이산가족 상봉·교류 협력·연합제와 낮은 단계 연방제의 공통성을 연결하세요.",sourceUrl:official[30].url},
+  {lessonId:30,name:"금 모으기 운동 금반지",role:"practice",type:"유물",file:"l30-practice-gold.webp",page:70,summary:"1997년 외환 위기 극복을 돕기 위해 시민이 자발적으로 내놓은 금을 상징합니다.",examTip:"1907년 국채 보상 운동과 시대와 대상 부채를 구별하세요.",sourceUrl:official[30].url},
+  {lessonId:30,name:"남북 철도 연결",role:"practice",type:"유물",file:"l30-practice-rail-link.webp",page:70,summary:"남북 교류 확대 과정에서 추진된 경의선·동해선 철도 연결을 상징합니다.",examTip:"햇볕 정책·개성 공단·금강산 관광과 함께 남북 교류 사례로 정리하세요.",sourceUrl:official[30].url},
 ];
 const laterEncounters:Encounter[]=laterEncounterData.map((item,index)=>({
   id:`l${item.lessonId}-${item.role}-${index+1}`,

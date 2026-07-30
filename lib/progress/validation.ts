@@ -4,7 +4,7 @@ import { PLAYABLE_LESSONS, type BooleanMap, type NumberMap, type PlayerProgress,
 const bossCosts=new Set([30,50,70]);
 const bossKeys=new Set(PLAYABLE_LESSONS.flatMap(lesson=>[1,2,3].map(level=>`${lesson}-${level}`)));
 const encounterIds=new Set(encounters.map(item=>item.id));
-const attemptPattern=/^(practice|boss)-(20|1[0-9]|[1-9])-[123]$/;
+const attemptPattern=/^(practice|boss)-(30|[12][0-9]|[1-9])-[123]$/;
 const cleanBooleanMap=(value:unknown,allowed:Set<string>):BooleanMap|null=>{
   if(!value||typeof value!=="object"||Array.isArray(value))return null;
   const result:BooleanMap={};
