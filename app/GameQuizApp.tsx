@@ -302,8 +302,8 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   }
 
   return <main>{nav}
-    <section className="home-hero"><div><p className="eyebrow">한국사 퀴즈 원정</p><h1>연습하고<br/><em>보스를 쓰러뜨리세요</em></h1><p className="hero-desc">5문제 연습으로 골드를 모으고, 각 강의의 보스 3명에게 도전하세요. 만난 유물과 유적은 도감에 기록됩니다.</p><button className="primary" onClick={()=>goLesson(lessons[0])}>첫 원정 시작 →</button></div>
-      <div className="master"><div><span>현재 칭호</span><span className="gold-text">{progress.gold} G</span></div><strong>{rank}</strong><p>보스 {totalDefeated}/90 · 도감 {collectionCount}/{encounters.length}</p><button className="rank-button" onClick={openCollection}>도감 보기</button><button className="rank-button" onClick={openLeaderboard}>TOP 10 보기</button></div>
+    <section className="home-hero"><div><p className="eyebrow">한국사 퀴즈 원정</p><h1>연습하고<br/><em>보스를 쓰러뜨리세요</em></h1><p className="hero-desc">5문제 연습으로 골드를 모으고, 각 강의의 보스 3명에게 도전하세요. 만난 유물과 유적은 도감에 기록됩니다.</p><div className="hero-actions"><button className="primary" onClick={()=>goLesson(lessons[0])}>첫 원정 시작 →</button><Link className="secondary" href="/era-visual-quiz">그림 퀴즈 →</Link></div></div>
+      <div className="master"><div><span>현재 칭호</span><span className="gold-text">{progress.gold} G</span></div><strong>{rank}</strong><p>보스 {totalDefeated}/90 · 도감 {collectionCount}/{encounters.length}</p><Link className="rank-button" href="/era-visual-quiz">시대별 그림 퀴즈</Link><button className="rank-button" onClick={openCollection}>도감 보기</button><button className="rank-button" onClick={openLeaderboard}>TOP 10 보기</button></div>
     </section>
     <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 지도</p><h2>현재 1~30강 전체를 플레이할 수 있습니다</h2></div></div>
       <div className="lessons">{lessons.map(item=>{const done=defeatedCount(progress,item.id);return <button key={item.id} className={item.status} onClick={()=>goLesson(item)} disabled={item.status==="coming"}><span className="lesson-no">{String(item.id).padStart(2,"0")}</span><div><strong>{item.shortTitle}</strong><span>{item.status==="ready"?`보스 ${done}/3`:"준비 중"}</span></div><b>{done===3?"✓":item.status==="ready"?"→":"·"}</b></button>})}</div>
@@ -312,5 +312,5 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
 }
 
 function Nav({home,gold,user,onLeaderboard,onCollection,collectionCount}:{home?:()=>void;gold:number;user:User|null;onLeaderboard:()=>void;onCollection:()=>void;collectionCount:number}){
-  return <nav><button className="brand" onClick={home}><span>史</span>한국사 수련장</button><span>기본별개념 · 30강 원정</span><button className="nav-rank" onClick={onCollection}>도감 {collectionCount}/{encounters.length}</button><button className="nav-rank" onClick={onLeaderboard}>TOP 10</button><b className="nav-gold">{gold} G</b>{user&&<small className="nav-user">{user.displayName}</small>}{home&&<button className="nav-link" onClick={home}>전체 강의</button>}</nav>;
+  return <nav><button className="brand" onClick={home}><span>史</span>한국사 수련장</button><span>기본별개념 · 30강 원정</span><Link className="nav-rank" href="/era-visual-quiz">그림 퀴즈</Link><button className="nav-rank" onClick={onCollection}>도감 {collectionCount}/{encounters.length}</button><button className="nav-rank" onClick={onLeaderboard}>TOP 10</button><b className="nav-gold">{gold} G</b>{user&&<small className="nav-user">{user.displayName}</small>}{home&&<button className="nav-link" onClick={home}>전체 강의</button>}</nav>;
 }
