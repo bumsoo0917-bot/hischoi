@@ -129,3 +129,16 @@ test("production metadata falls back to the current Vercel address",async()=>{
   assert.match(layout,/process\.env\.NEXT_PUBLIC_SITE_URL/);
   assert.match(layout,/https:\/\/hischoi\.vercel\.app/);
 });
+
+test("era visual quiz uses existing encounter art with four unique choices",async()=>{
+  const [quiz,game,component,page]=await Promise.all([read("app/era-visual-quiz/quiz-data.ts"),read("app/GameQuizApp.tsx"),read("app/era-visual-quiz/EraVisualQuiz.tsx"),read("app/era-visual-quiz/page.tsx")]);
+  assert.equal([...quiz.matchAll(/\{id:"(?:prehistory|ancient|goryeo|joseon|opening|occupation|modern)"/g)].length,7);
+  assert.match(quiz,/item\.type!=="역사 자료"/);
+  assert.match(quiz,/slice\(0,3\)/);
+  assert.match(quiz,/choices:shuffle\(\[answer\.name,\.\.\.distractors\.map/);
+  assert.match(quiz,/split\(item\.name\)\.join\("이 대상"\)/);
+  assert.match(component,/그림 속 \{current\.encounter\.type\}의 이름은 무엇일까요/);
+  assert.match(component,/시대별 그림 퀴즈/);
+  assert.match(game,/href="\/era-visual-quiz"/);
+  assert.match(page,/if\(!user\)redirect\("\/"\)/);
+});
