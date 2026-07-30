@@ -1,4 +1,4 @@
-export const PLAYABLE_LESSONS=Array.from({length:15},(_,index)=>index+1);
+export const PLAYABLE_LESSONS=Array.from({length:20},(_,index)=>index+1);
 
 export type BooleanMap=Record<string,boolean>;
 export type NumberMap=Record<string,number>;
