@@ -5,8 +5,8 @@ import test from "node:test";
 const root=new URL("../",import.meta.url);
 const read=path=>readFile(new URL(path,root),"utf8");
 
-test("lessons 3-15 expose exactly 100 structurally unique questions each",async()=>{
-  const [early,later]=await Promise.all([read("app/questions-3-10.ts"),read("app/questions-11-15.ts")]);
+test("lessons 3-20 expose exactly 100 structurally unique questions each",async()=>{
+  const [early,later,newest]=await Promise.all([read("app/questions-3-10.ts"),read("app/questions-11-15.ts"),read("app/questions-16-20.ts")]);
   for(let lesson=3;lesson<=10;lesson++){
     const block=early.match(new RegExp(` ${lesson}:\\{pages:\\[[^\\]]+\\],facts:\\[([\\s\\S]*?)\\n \\]\\},`));
     assert.ok(block,`${lesson}강 데이터가 있어야 합니다.`);
@@ -21,9 +21,18 @@ test("lessons 3-15 expose exactly 100 structurally unique questions each",async(
     assert.equal(facts.length,20,`${lesson}강은 20개 사실 × 5개 유형이어야 합니다.`);
     assert.equal(new Set(facts.map(match=>match[1])).size,20,`${lesson}강 개념은 중복되면 안 됩니다.`);
   }
+  for(let lesson=16;lesson<=20;lesson++){
+    const block=newest.match(new RegExp(`  ${lesson}:\\[([\\s\\S]*?)\\n  \\],`));
+    assert.ok(block,`${lesson}강 데이터가 있어야 합니다.`);
+    const facts=[...block[1].matchAll(/^    \["([^"]+)","([^"]+)","([^"]+)",(\d+)\],$/gm)];
+    assert.equal(facts.length,20,`${lesson}강은 20개 사실 × 5개 유형이어야 합니다.`);
+    assert.equal(new Set(facts.map(match=>match[1])).size,20,`${lesson}강 개념은 중복되면 안 됩니다.`);
+  }
   assert.match(early,/flatMap\(\(\[term,clue\],index\)=>/);
   assert.match(later,/flatMap\(\(\[term,clue,distinction,page\],index\)=>/);
   assert.match(later,/id:`l\$\{lessonId\}-q\$\{index\+1\}-[a-e]`/);
+  assert.match(newest,/flatMap\(\(\[term,clue,distinction,page\],index\)=>/);
+  assert.match(newest,/id:`l\$\{lessonId\}-q\$\{index\+1\}-[a-e]`/);
 });
 
 test("question validator enforces unique IDs, four choices, one answer and exact sources",async()=>{
@@ -44,23 +53,23 @@ test("all lesson encounters and their local assets are connected",async()=>{
     assert.equal(files.length,5,`${lesson}강에는 보스 3개와 연습 상대 2개가 있어야 합니다.`);
     await Promise.all(files.map(file=>access(new URL(`public/encounters/${file}`,root))));
   }
-  for(let lesson=11;lesson<=15;lesson++){
+  for(let lesson=11;lesson<=20;lesson++){
     const files=[...source.matchAll(new RegExp(`lessonId:${lesson},[^\\n]+file:"(l${lesson}-(?:boss|practice)-[^"]+\\.webp)"`,"g"))].map(match=>match[1]);
     assert.equal(files.length,5,`${lesson}강에는 보스 3개와 연습 상대 2개가 있어야 합니다.`);
     await Promise.all(files.map(file=>access(new URL(`public/encounters/${file}`,root))));
   }
 });
 
-test("game and account ranking use Firestore-backed fifteen-lesson persistence",async()=>{
+test("game and account ranking use Firestore-backed twenty-lesson persistence",async()=>{
   const [game,api,store]=await Promise.all([read("app/GameQuizApp.tsx"),read("app/api/leaderboard/route.ts"),read("lib/progress/firestore.ts")]);
-  assert.match(game,/Array\.from\(\{length:15\}/);
+  assert.match(game,/Array\.from\(\{length:20\}/);
   assert.match(game,/attempts:progress\.attempts/);
   assert.match(api,/progressRepository\(\)/);
   assert.match(store,/class FirestoreProgressRepository/);
 });
 
-test("lesson 11-15 source-note PDFs open as individual pages",async()=>{
-  const pages=[26,27,28,29,30,31,32,33,34,35,36,37,40,41,42,43];
+test("lesson 11-20 source-note PDFs open as individual pages",async()=>{
+  const pages=[26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49];
   await Promise.all(pages.map(page=>access(new URL(`public/notes/pdf-${page}.pdf`,root))));
 });
 

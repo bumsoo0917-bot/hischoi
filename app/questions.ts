@@ -72,7 +72,7 @@ const prehistory:Fact[]=[
 ].map(row=>f(row as Parameters<typeof f>[0]));
 
 const titles=["우리는 왜 역사를 공부하는가","선사 시대~여러 나라의 성장","고대(삼국)","고대(남북국 시대)","고대(경제·사회)","고대(문화1)","고대(문화2)","고려(정치)","고려(외교)","고려(경제·사회)","고려(문화1)","고려(문화2)","조선(전기 정치)","조선(후기 정치)","조선(경제)","조선(사회)","조선(전기 문화)","조선(후기 문화)","개항기(흥선 대원군)","개항기(개항~갑신정변)","개항기(동학 농민 운동~대한 제국)","개항기(국권 피탈과 저항)","개항기(문화)","일제 강점기(식민 통치)","일제 강점기(1910년대 저항)","일제 강점기(1920년대 저항)","일제 강점기(1930년대 이후 저항)","현대(광복~6·25 전쟁)","현대(민주주의의 발전)","현대(경제 발전과 통일 정책)"];
-export const lessons:Lesson[]=titles.map((title,index)=>({id:index+1,title,shortTitle:title,status:index<15?"ready":"coming",videoUrl:index===0?"https://youtu.be/N_f97jxWZM8":index===1?"https://youtu.be/DBVMuINZtVo":undefined}));
+export const lessons:Lesson[]=titles.map((title,index)=>({id:index+1,title,shortTitle:title,status:index<20?"ready":"coming",videoUrl:index===0?"https://youtu.be/N_f97jxWZM8":index===1?"https://youtu.be/DBVMuINZtVo":undefined}));
 
 function objectParticle(word:string){
   const code=word.charCodeAt(word.length-1);
@@ -141,7 +141,8 @@ function build(lessonId:number,facts:Fact[]):Question[]{
 }
 import { extendedQuestions } from "./questions-3-10";
 import { laterQuestions } from "./questions-11-15";
-export const questionBank=[...build(1,history),...build(2,prehistory),...extendedQuestions,...laterQuestions];
+import { newestQuestions } from "./questions-16-20";
+export const questionBank=[...build(1,history),...build(2,prehistory),...extendedQuestions,...laterQuestions,...newestQuestions];
 export function validateQuestionBank(questions:Question[]=questionBank){
   const ids=new Set<string>();
   for(const question of questions){
@@ -151,10 +152,10 @@ export function validateQuestionBank(questions:Question[]=questionBank){
     if(question.choices.filter(choice=>choice===question.answer).length!==1)throw new Error(`정답은 정확히 하나여야 합니다: ${question.id}`);
     if(!question.explanation||!question.noteUrl||!question.sourceUrl.startsWith("https://"))throw new Error(`출처 또는 해설 누락: ${question.id}`);
     const page=Number(question.page.match(/\d+/)?.[0]);
-    const allowed:Record<number,number[]>={3:[6,7,8,9],4:[10,11],5:[12,13],6:[14,15],7:[16,17],8:[18,19,20,21],9:[22,23],10:[24,25],11:[26],12:[27,28,29],13:[30,31,32,33,34,35],14:[40,41],15:[36,37,42,43]};
+    const allowed:Record<number,number[]>={3:[6,7,8,9],4:[10,11],5:[12,13],6:[14,15],7:[16,17],8:[18,19,20,21],9:[22,23],10:[24,25],11:[26],12:[27,28,29],13:[30,31,32,33,34,35],14:[40,41],15:[36,37,42,43],16:[37,44],17:[38,39],18:[45,46],19:[47],20:[48,49]};
     if(allowed[question.lessonId]&&(!allowed[question.lessonId].includes(page)||question.noteUrl!==`/notes/pdf-${page}.pdf`))throw new Error(`PDF 페이지 범위 오류: ${question.id}`);
   }
-  for(let lesson=3;lesson<=15;lesson++)if(questions.filter(question=>question.lessonId===lesson).length!==100)throw new Error(`${lesson}강은 정확히 100문항이어야 합니다.`);
+  for(let lesson=3;lesson<=20;lesson++)if(questions.filter(question=>question.lessonId===lesson).length!==100)throw new Error(`${lesson}강은 정확히 100문항이어야 합니다.`);
   return true;
 }
 validateQuestionBank();
