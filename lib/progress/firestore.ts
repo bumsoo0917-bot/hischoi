@@ -1,11 +1,14 @@
 import { FieldValue, type DocumentData } from "firebase-admin/firestore";
 import { adminFirestore } from "../firebase-admin";
 import { derived, verifyTransition } from "./validation";
-import type { PlayerProgress, ProgressRepository, ProgressWrite, RankedPlayer } from "./types";
+import { PLAYABLE_LESSONS, type PlayerProgress, type ProgressRepository, type ProgressWrite, type RankedPlayer } from "./types";
 
 const collectionName="playerProgress";
-const blank=(userId:string,displayName:string):PlayerProgress=>({userId,displayName,currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,title:"수련을 시작한 모험가",lessonProgress:Object.fromEntries(Array.from({length:10},(_,i)=>[String(i+1),{practiceAttempts:0,bossAttempts:0,bossesDefeated:0,mastered:false}])),lessonBosses:Object.fromEntries(Array.from({length:10},(_,i)=>[String(i+1),0])),defeated:{},collection:{},attempts:{},updatedAt:Date.now(),rankScore:0});
-const decode=(data:DocumentData):PlayerProgress=>({...data,updatedAt:data.updatedAt?.toMillis?.()??Number(data.updatedAt)}) as PlayerProgress;
+const blank=(userId:string,displayName:string):PlayerProgress=>({userId,displayName,currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,title:"수련을 시작한 모험가",lessonProgress:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),{practiceAttempts:0,bossAttempts:0,bossesDefeated:0,mastered:false}])),lessonBosses:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),0])),defeated:{},collection:{},attempts:{},updatedAt:Date.now(),rankScore:0});
+const decode=(data:DocumentData):PlayerProgress=>{
+  const defaults=blank(String(data.userId??""),String(data.displayName??"도전자"));
+  return {...defaults,...data,lessonProgress:{...defaults.lessonProgress,...data.lessonProgress},lessonBosses:{...defaults.lessonBosses,...data.lessonBosses},updatedAt:data.updatedAt?.toMillis?.()??Number(data.updatedAt)} as PlayerProgress;
+};
 export class FirestoreProgressRepository implements ProgressRepository{
   private db=adminFirestore();
   async ensure(userId:string,displayName:string){

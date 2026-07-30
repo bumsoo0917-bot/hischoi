@@ -1,6 +1,6 @@
 import { derived, verifyTransition } from "./validation";
-import type { PlayerProgress, ProgressRepository, ProgressWrite, RankedPlayer } from "./types";
-const blank=(userId:string,displayName:string):PlayerProgress=>({userId,displayName,currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,title:"수련을 시작한 모험가",lessonProgress:Object.fromEntries(Array.from({length:10},(_,i)=>[String(i+1),{practiceAttempts:0,bossAttempts:0,bossesDefeated:0,mastered:false}])),lessonBosses:Object.fromEntries(Array.from({length:10},(_,i)=>[String(i+1),0])),defeated:{},collection:{},attempts:{},updatedAt:0,rankScore:0});
+import { PLAYABLE_LESSONS, type PlayerProgress, type ProgressRepository, type ProgressWrite, type RankedPlayer } from "./types";
+const blank=(userId:string,displayName:string):PlayerProgress=>({userId,displayName,currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,title:"수련을 시작한 모험가",lessonProgress:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),{practiceAttempts:0,bossAttempts:0,bossesDefeated:0,mastered:false}])),lessonBosses:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),0])),defeated:{},collection:{},attempts:{},updatedAt:0,rankScore:0});
 export class MemoryProgressRepository implements ProgressRepository{
  private players=new Map<string,PlayerProgress>();
  async ensure(userId:string,displayName:string){const found=this.players.get(userId);if(found)return structuredClone(found);const player=blank(userId,displayName);this.players.set(userId,player);return structuredClone(player);}

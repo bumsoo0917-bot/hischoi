@@ -30,7 +30,7 @@ const empty:Progress={defeated:{},collection:{},attempts:{},seen:{},wrong:{},rec
 const bossLevels:BossLevel[]=[1,2,3];
 const bossCosts:Record<BossLevel,number>={1:30,2:50,3:70};
 const bossKey=(lesson:number,level:BossLevel)=>`${lesson}-${level}`;
-const playableLessonIds=Array.from({length:10},(_,index)=>index+1);
+const playableLessonIds=Array.from({length:15},(_,index)=>index+1);
 
 function shuffle<T>(items:T[]){
   const copy=[...items];
@@ -270,7 +270,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
         {user?<div className="my-ranking"><div><small>나의 순위</small><strong>{ranking.me?`${ranking.me.rank}위`:"기록 대기 중"}</strong><span>{user.displayName}{anonymousUser?" · 이 브라우저에서만 이어집니다.":""}</span></div><div><small>총 골드</small><strong>{ranking.me?.totalGold??progress.totalGold} G</strong></div><div><small>보스</small><strong>{ranking.me?.bossesDefeated??totalDefeated}명</strong></div><FirebaseAuthButton authenticated firebaseUser={firebaseUser} anonymousUser={anonymousUser} fallbackHref={signOutHref}/></div>
           :<div className="signin-panel"><div><strong>로그인하면 기록이 계정에 저장됩니다.</strong><p>Google 계정 또는 익명 계정으로 골드와 보스 진행 상황을 저장할 수 있습니다.</p></div><Link className="auth-page-link" href="/">로그인하기</Link></div>}
         <div className="ranking-table"><div className="ranking-head"><span>순위</span><span>도전자</span><span>보스</span><span>총 골드</span><span>진행</span></div>
-          {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중...</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:ranking.players.map(player=><div className="ranking-row" key={`${player.rank}-${player.displayName}`}><b>{player.rank}</b><strong>{player.displayName}</strong><span>{player.bossesDefeated}명</span><span>{player.totalGold} G</span><span className="mini-progress"><i style={{width:`${player.bossesDefeated/30*100}%`}}/><small>완료 강의 {Object.values(player.lessonBosses??{}).filter(count=>count===3).length}/10</small></span></div>)}
+          {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중...</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:ranking.players.map(player=><div className="ranking-row" key={`${player.rank}-${player.displayName}`}><b>{player.rank}</b><strong>{player.displayName}</strong><span>{player.bossesDefeated}명</span><span>{player.totalGold} G</span><span className="mini-progress"><i style={{width:`${player.bossesDefeated/45*100}%`}}/><small>완료 강의 {Object.values(player.lessonBosses??{}).filter(count=>count===3).length}/15</small></span></div>)}
         </div>
       </section>
     </main>;
@@ -303,9 +303,9 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
 
   return <main>{nav}
     <section className="home-hero"><div><p className="eyebrow">한국사 퀴즈 원정</p><h1>연습하고<br/><em>보스를 쓰러뜨리세요</em></h1><p className="hero-desc">5문제 연습으로 골드를 모으고, 각 강의의 보스 3명에게 도전하세요. 만난 유물과 유적은 도감에 기록됩니다.</p><button className="primary" onClick={()=>goLesson(lessons[0])}>첫 원정 시작 →</button></div>
-      <div className="master"><div><span>현재 칭호</span><span className="gold-text">{progress.gold} G</span></div><strong>{rank}</strong><p>보스 {totalDefeated}/30 · 도감 {collectionCount}/{encounters.length}</p><button className="rank-button" onClick={openCollection}>도감 보기</button><button className="rank-button" onClick={openLeaderboard}>TOP 10 보기</button></div>
+      <div className="master"><div><span>현재 칭호</span><span className="gold-text">{progress.gold} G</span></div><strong>{rank}</strong><p>보스 {totalDefeated}/45 · 도감 {collectionCount}/{encounters.length}</p><button className="rank-button" onClick={openCollection}>도감 보기</button><button className="rank-button" onClick={openLeaderboard}>TOP 10 보기</button></div>
     </section>
-    <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 지도</p><h2>현재 1~10강을 플레이할 수 있습니다</h2></div></div>
+    <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 지도</p><h2>현재 1~15강을 플레이할 수 있습니다</h2></div></div>
       <div className="lessons">{lessons.map(item=>{const done=defeatedCount(progress,item.id);return <button key={item.id} className={item.status} onClick={()=>goLesson(item)} disabled={item.status==="coming"}><span className="lesson-no">{String(item.id).padStart(2,"0")}</span><div><strong>{item.shortTitle}</strong><span>{item.status==="ready"?`보스 ${done}/3`:"준비 중"}</span></div><b>{done===3?"✓":item.status==="ready"?"→":"·"}</b></button>})}</div>
     </section>
   </main>;
