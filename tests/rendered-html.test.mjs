@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
+import { execFile } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
 
 const root=new URL("../",import.meta.url);
 const read=path=>readFile(new URL(path,root),"utf8");
+const execFileAsync=promisify(execFile);
 
 test("lessons 3-30 expose exactly 100 structurally unique questions each",async()=>{
   const [early,later,newest,final]=await Promise.all([read("app/questions-3-10.ts"),read("app/questions-11-15.ts"),read("app/questions-16-20.ts"),read("app/questions-21-30.ts")]);
@@ -53,6 +60,15 @@ test("question validator enforces unique IDs, four choices, one answer and exact
   assert.match(source,/"modern-era","contemporary"/);
   assert.match(source,/상위·하위 또는 중복 정답 가능성이 있는 보기/);
   assert.match(source,/validateQuestionBank\(\);/);
+});
+
+test("question bank evaluates without a signed-in page runtime crash",async()=>{
+  const projectRoot=fileURLToPath(root);
+  const output=await mkdtemp(join(tmpdir(),"hischoi-questions-"));
+  const tsc=join(projectRoot,"node_modules","typescript","bin","tsc");
+  const sources=["questions.ts","questions-3-10.ts","questions-11-15.ts","questions-16-20.ts","questions-21-30.ts"].map(file=>join(projectRoot,"app",file));
+  await execFileAsync(process.execPath,[tsc,...sources,"--outDir",output,"--module","commonjs","--target","es2022","--esModuleInterop","--skipLibCheck"],{cwd:projectRoot});
+  await execFileAsync(process.execPath,[join(output,"questions.js")],{cwd:projectRoot});
 });
 
 test("all lesson encounters and their local assets are connected",async()=>{
