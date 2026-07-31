@@ -128,8 +128,16 @@ function safeWrongFacts(facts:Fact[],fact:Fact,index:number){
     const direction=offset%2===0?1:-1;
     return facts[(index+direction*distance+facts.length)%facts.length];
   });
-  const safe=ordered.filter(candidate=>!blocked.has(candidate.id));
-  return [...safe,...ordered.filter(candidate=>!safe.includes(candidate))].slice(0,3);
+  const selected:Fact[]=[];
+  for(const candidate of ordered){
+    if(blocked.has(candidate.id))continue;
+    const conflictsWithSelected=selected.some(chosen=>ambiguityGroups.some(group=>group.includes(chosen.id)&&group.includes(candidate.id)));
+    if(conflictsWithSelected)continue;
+    selected.push(candidate);
+    if(selected.length===3)break;
+  }
+  if(selected.length!==3)throw new Error(`${fact.term}의 모호하지 않은 오답 보기를 구성하지 못했습니다.`);
+  return selected;
 }
 
 function build(lessonId:number,facts:Fact[]):Question[]{
