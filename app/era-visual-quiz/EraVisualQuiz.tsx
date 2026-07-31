@@ -85,9 +85,9 @@ export default function EraVisualQuiz(){
   }
 
   return <main>{nav}
-    <section className="simple-hero"><p className="eyebrow">시대별 그림 퀴즈</p><h1>어느 시대부터 알아볼까요?</h1><p>그림과 짧은 설명을 보고 같은 시대의 네 보기 중 정답을 고르세요.</p></section>
+    <section className="simple-hero"><p className="eyebrow">시대별 그림 퀴즈</p><h1>어느 시대부터 알아볼까요?</h1><p>그림과 짧은 설명을 보고 여러 시대가 섞인 네 보기 중 정답을 고르세요.</p></section>
     <section className="visual-era-section">
-      <div className="visual-era-guide"><strong>진행 방식</strong><span>시대 선택</span><b>→</b><span>무작위 10문제</span><b>→</b><span>바로 정답 확인</span></div>
+      <div className="visual-era-guide"><strong>진행 방식</strong><span>시대 선택</span><b>→</b><span>무작위 10문제</span><b>→</b><span>같은 시대 + 다른 시대 선지</span><b>→</b><span>바로 정답 확인</span></div>
       <div className="visual-era-grid">{visualEras.map(targetEra=>{
         const items=visualEncountersForEra(targetEra.id);
         const typeCounts=items.reduce<Record<string,number>>((result,item)=>({...result,[item.type]:(result[item.type]??0)+1}),{});

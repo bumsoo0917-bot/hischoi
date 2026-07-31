@@ -1,4 +1,5 @@
 import { type Encounter, encounters } from "../encounters";
+import { visualQuizExtras } from "./extra-encounters";
 
 export type VisualEraId="prehistory"|"ancient"|"goryeo"|"joseon"|"opening"|"occupation"|"modern";
 
@@ -49,7 +50,7 @@ function clueFor(item:Encounter):string{
 export function visualEncountersForEra(eraId:VisualEraId):Encounter[]{
   const era=visualEras.find(item=>item.id===eraId);
   if(!era)return [];
-  return uniqueByName(encounters.filter(item=>
+  return uniqueByName([...encounters,...visualQuizExtras].filter(item=>
     era.lessonIds.includes(item.lessonId)&&item.type!=="역사 자료"
   ));
 }
@@ -57,10 +58,29 @@ export function visualEncountersForEra(eraId:VisualEraId):Encounter[]{
 export function buildVisualQuiz(eraId:VisualEraId,count=10):VisualQuestion[]{
   const candidates=visualEncountersForEra(eraId);
   if(candidates.length<4)return [];
+  const era=visualEras.find(item=>item.id===eraId);
+  if(!era)return [];
+  const eraIndex=visualEras.findIndex(item=>item.id===eraId);
+  const adjacentLessons=new Set([
+    ...(visualEras[eraIndex-1]?.lessonIds??[]),
+    ...(visualEras[eraIndex+1]?.lessonIds??[]),
+  ]);
+  const allCandidates=uniqueByName([...encounters,...visualQuizExtras].filter(item=>item.type!=="역사 자료"));
+
   return shuffle(candidates).slice(0,Math.min(count,candidates.length)).map(answer=>{
-    const sameType=shuffle(candidates.filter(item=>item.id!==answer.id&&item.type===answer.type));
-    const fallback=shuffle(candidates.filter(item=>item.id!==answer.id&&item.type!==answer.type));
-    const distractors=uniqueByName([...sameType,...fallback]).slice(0,3);
+    const eligible=(item:Encounter)=>item.id!==answer.id&&item.name!==answer.name;
+    const sameEra=uniqueByName([
+      ...shuffle(candidates.filter(item=>eligible(item)&&item.type===answer.type)),
+      ...shuffle(candidates.filter(item=>eligible(item)&&item.type!==answer.type)),
+    ]).slice(0,2);
+    const outsideEra=allCandidates.filter(item=>eligible(item)&&!era.lessonIds.includes(item.lessonId));
+    const crossEra=uniqueByName([
+      ...shuffle(outsideEra.filter(item=>adjacentLessons.has(item.lessonId)&&item.type===answer.type)),
+      ...shuffle(outsideEra.filter(item=>!adjacentLessons.has(item.lessonId)&&item.type===answer.type)),
+      ...shuffle(outsideEra.filter(item=>adjacentLessons.has(item.lessonId)&&item.type!==answer.type)),
+      ...shuffle(outsideEra.filter(item=>!adjacentLessons.has(item.lessonId)&&item.type!==answer.type)),
+    ]);
+    const distractors=uniqueByName([...sameEra,...crossEra]).slice(0,3);
     return {
       id:`visual-${eraId}-${answer.id}`,
       encounter:answer,
