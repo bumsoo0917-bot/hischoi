@@ -72,9 +72,22 @@ test("all lesson encounters and their local assets are connected",async()=>{
 test("game and account ranking use Firestore-backed thirty-lesson persistence",async()=>{
   const [game,api,store]=await Promise.all([read("app/GameQuizApp.tsx"),read("app/api/leaderboard/route.ts"),read("lib/progress/firestore.ts")]);
   assert.match(game,/Array\.from\(\{length:30\}/);
-  assert.match(game,/attempts:progress\.attempts/);
+  assert.match(game,/progressWrite\(progress\)/);
+  assert.match(game,/bossHp=Math\.max\(0,90-correctCount\*10\)/);
+  assert.match(game,/className="title-picker"/);
   assert.match(api,/progressRepository\(\)/);
   assert.match(store,/class FirestoreProgressRepository/);
+});
+
+test("gamification unifies the 150 lesson entries and 23 visual-only entries",async()=>{
+  const [collection,rewards,visual]=await Promise.all([read("app/collection-data.ts"),read("lib/gamification.ts"),read("app/era-visual-quiz/EraVisualQuiz.tsx")]);
+  assert.match(collection,/COLLECTION_TOTAL=collectionEncounters\.length/);
+  assert.match(collection,/VISUAL_COLLECTION_TOTAL=visualOnlyCollectionEncounters\.length/);
+  assert.match(rewards,/lessonMasterXp:200/);
+  assert.match(rewards,/visualGoldPerCorrect:5/);
+  assert.match(rewards,/visualPerfectXp:50/);
+  assert.match(visual,/visualDiscoveryXp/);
+  assert.match(visual,/visualPerfectEras/);
 });
 
 test("lesson 11-30 source-note PDFs open as individual pages",async()=>{

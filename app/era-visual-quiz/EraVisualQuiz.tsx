@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppNavigation from "../AppNavigation";
 import { buildVisualQuiz, type VisualEra, type VisualQuestion, visualEncountersForEra, visualEras } from "./quiz-data";
+import { clientProgressSummary, emptyClientProgress, migrateClientProgress, PROGRESS_STORAGE_KEY, progressWrite, type ClientProgress } from "../client-progress";
+import { rewards } from "../../lib/gamification";
 
 type Screen="select"|"quiz"|"result";
 type VisualAnswer={question:VisualQuestion;selected:string;correct:boolean};
@@ -16,6 +18,27 @@ export default function EraVisualQuiz(){
   const [index,setIndex]=useState(0);
   const [answers,setAnswers]=useState<VisualAnswer[]>([]);
   const [choice,setChoice]=useState<string|null>(null);
+  const [progress,setProgress]=useState<ClientProgress>(emptyClientProgress);
+  const [ready,setReady]=useState(false);
+  const [serverReady,setServerReady]=useState(false);
+  const [resultReward,setResultReward]=useState({gold:0,xp:0,newCollection:0,newTitles:[] as string[]});
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(()=>{setProgress(migrateClientProgress(localStorage.getItem(PROGRESS_STORAGE_KEY)));setReady(true)},[]);
+  useEffect(()=>{if(ready)localStorage.setItem(PROGRESS_STORAGE_KEY,JSON.stringify(progress))},[progress,ready]);
+  useEffect(()=>{
+    if(!ready)return;
+    let active=true;
+    fetch("/api/leaderboard",{cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject())
+      .then(data=>{if(active&&data.me)setProgress(old=>({...old,gold:data.me.currentGold,totalGold:data.me.totalGold,xp:data.me.xp,rewardVersion:data.me.rewardVersion,visualCorrect:data.me.visualCorrect,selectedTitle:data.me.selectedTitle,defeated:data.me.defeated,collection:data.me.collection,attempts:data.me.attempts,perfectBosses:data.me.perfectBosses,visualPerfectEras:data.me.visualPerfectEras}))})
+      .finally(()=>{if(active)setServerReady(true)});
+    return()=>{active=false};
+  },[ready]);
+  useEffect(()=>{
+    if(!ready||!serverReady)return;
+    const timer=setTimeout(()=>fetch("/api/leaderboard",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(progressWrite(progress))}).catch(()=>{}),250);
+    return()=>clearTimeout(timer);
+  },[progress,ready,serverReady]);
 
   const current=quiz[index];
   const score=answers.filter(item=>item.correct).length;
@@ -24,7 +47,7 @@ export default function EraVisualQuiz(){
   const start=(targetEra:VisualEra)=>{
     const nextQuiz=buildVisualQuiz(targetEra.id,10);
     if(nextQuiz.length<4)return;
-    setEra(targetEra);setQuiz(nextQuiz);setIndex(0);setAnswers([]);setChoice(null);setScreen("quiz");goTop();
+    setEra(targetEra);setQuiz(nextQuiz);setIndex(0);setAnswers([]);setChoice(null);setResultReward({gold:0,xp:0,newCollection:0,newTitles:[]});setScreen("quiz");goTop();
   };
   const answer=(selected:string)=>{
     if(choice||!current)return;
@@ -33,15 +56,26 @@ export default function EraVisualQuiz(){
   };
   const next=()=>{
     if(index<quiz.length-1){setIndex(value=>value+1);setChoice(null);return}
+    const correctAnswers=answers.filter(item=>item.correct);
+    const newItems=correctAnswers.filter(item=>!progress.collection[item.question.encounter.id]);
+    const goldEarned=score*rewards.visualGoldPerCorrect;
+    const xpEarned=score*rewards.visualXpPerCorrect+(score>=8?rewards.visualPassXp:0)+(score===10?rewards.visualPerfectXp:0)+newItems.length*rewards.visualDiscoveryXp;
+    const nextProgress:ClientProgress={...progress,gold:progress.gold+goldEarned,totalGold:progress.totalGold+goldEarned,xp:progress.xp+xpEarned,visualCorrect:progress.visualCorrect+score,collection:{...progress.collection,...Object.fromEntries(correctAnswers.map(item=>[item.question.encounter.id,true]))},attempts:{...progress.attempts,[`visual-${era.id}`]:(progress.attempts[`visual-${era.id}`]??0)+1},visualPerfectEras:{...progress.visualPerfectEras,...(score===10?{[era.id]:true}:{})}};
+    const beforeTitles=clientProgressSummary(progress).titles;
+    const newTitles=clientProgressSummary(nextProgress).titles.filter(title=>!beforeTitles.includes(title));
+    setProgress(nextProgress);
+    setResultReward({gold:goldEarned,xp:xpEarned,newCollection:newItems.length,newTitles});
     setScreen("result");goTop();
   };
 
-  const nav=<AppNavigation items={[
+  const nav=<AppNavigation gold={progress.gold} items={[
     {label:"30강 원정",shortLabel:"원정",href:"/"},
     {label:"그림 퀴즈",shortLabel:"그림 퀴즈",active:true,onClick:openSelect},
     {label:"도감",shortLabel:"도감",href:"/?view=collection"},
     {label:"TOP 10",shortLabel:"순위",href:"/?view=leaderboard"},
   ]}/>;
+
+  if(!ready)return <main className="loading"><span>史</span><p>그림 원정 기록을 불러오는 중...</p></main>;
 
   if(screen==="quiz"&&current){
     const correct=choice===current.answer;
@@ -49,7 +83,7 @@ export default function EraVisualQuiz(){
       <header className="quiz-head">
         <button className="quiet-button" onClick={openSelect}>← 중단</button>
         <div><span>{era.title} · 그림 퀴즈</span><strong>인물·유물·유적 맞히기</strong></div>
-        <b>{index+1} / {quiz.length}</b>
+        <b>{answers.filter(item=>item.correct).length*rewards.visualGoldPerCorrect} G · {answers.filter(item=>item.correct).length*rewards.visualXpPerCorrect} XP</b>
       </header>
       <div className="progress"><i style={{width:`${((index+1)/quiz.length)*100}%`}}/></div>
       <section className="question visual-question">
@@ -81,6 +115,8 @@ export default function EraVisualQuiz(){
       <p className="eyebrow">{era.title} 그림 퀴즈 완료</p>
       <h1>{score>=8?"시대의 얼굴을 잘 알아보셨습니다!":"그림과 이름을 한 번 더 연결해 보세요"}</h1>
       <div className="result-score"><strong>{score}</strong><span>/ {quiz.length}</span></div>
+      <div className="reward-summary"><span><small>획득 골드</small><strong>+{resultReward.gold} G</strong></span><span><small>획득 경험치</small><strong>+{resultReward.xp} XP</strong></span><span><small>새 도감</small><strong>{resultReward.newCollection}개</strong></span></div>
+      {resultReward.newTitles.length>0&&<div className="title-unlocked"><small>새 칭호 획득</small><strong>{resultReward.newTitles.join(" · ")}</strong></div>}
       {missed.length>0&&<div className="review"><h2>다시 볼 대상</h2>{missed.map(item=><div key={item.question.id}><strong>{item.question.answer}</strong><small>선택: {item.selected}</small><p>{item.question.encounter.summary}</p></div>)}</div>}
       <div className="actions">
         <button className="primary" onClick={()=>start(era)}>같은 시대 다시 하기</button>
@@ -94,6 +130,7 @@ export default function EraVisualQuiz(){
     <section className="simple-hero visual-hero"><p className="eyebrow">시대별 그림 퀴즈</p><h1>그림으로 시대를 기억하세요</h1><p>인물·유물·유적을 보고 여러 시대가 섞인 네 보기 중 정답을 고르세요.</p></section>
     <section className="visual-era-section">
       <div className="visual-era-guide"><strong>진행 방식</strong><span>시대 선택</span><b>→</b><span>무작위 10문제</span><b>→</b><span>같은 시대 + 다른 시대 선지</span><b>→</b><span>바로 정답 확인</span></div>
+      <p className="visual-reward-rule"><strong>보상</strong> 정답마다 5 G · 6 XP / 8문제 이상 +20 XP / 10문제 전부 정답 +50 XP / 새 도감 발견 +10 XP</p>
       <div className="visual-era-grid">{visualEras.map(targetEra=>{
         const items=visualEncountersForEra(targetEra.id);
         const typeCounts=items.reduce<Record<string,number>>((result,item)=>({...result,[item.type]:(result[item.type]??0)+1}),{});
