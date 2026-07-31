@@ -50,6 +50,8 @@ test("question validator enforces unique IDs, four choices, one answer and exact
   assert.match(source,/filter\(choice=>choice===question\.answer\)\.length!==1/);
   assert.match(source,/questions\.filter\(question=>question\.lessonId===lesson\)\.length!==100/);
   assert.match(source,/question\.noteUrl!==`\/notes\/pdf-\$\{page\}\.pdf`/);
+  assert.match(source,/"modern-era","contemporary"/);
+  assert.match(source,/상위·하위 또는 중복 정답 가능성이 있는 보기/);
   assert.match(source,/validateQuestionBank\(\);/);
 });
 
