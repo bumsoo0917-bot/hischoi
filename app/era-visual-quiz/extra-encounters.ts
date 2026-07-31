@@ -1,4 +1,4 @@
-import { type Encounter } from "../encounters";
+import { heritageSearchUrl, type Encounter } from "../encounters";
 
 const prehistorySource="https://contents.history.go.kr/front/ta/print.do?levelId=ta_m71_0020_0010_0040&whereStr=";
 const ancientCultureSource="https://contents.history.go.kr/front/ta/view.do?levelId=ta_m51_0060_0050";
@@ -62,8 +62,8 @@ const extraEncounterData:ExtraEncounter[]=[
   {
     id:"visual-ancient-jeongnimsa-pagoda",lessonId:6,name:"정림사지 오층석탑",type:"유적",
     file:"jeongnimsa-five-story-pagoda.webp",pdfPage:15,
-    summary:"정림사지 오층석탑은 목탑의 구조를 돌로 표현한 백제 후기의 대표 석탑입니다.",
-    examTip:"익산 미륵사지 석탑과 함께 백제 석탑으로 묶고 신라의 석가탑·다보탑과 구별하세요.",
+    summary:"정림사지 오층석탑은 백제 사비 시기에 부여 정림사 터에 화강암으로 세운 오층 석탑입니다. 낮고 넓은 지붕돌과 위로 갈수록 줄어드는 안정된 비례에서 목탑 구조를 석탑으로 정착시킨 백제 건축의 특징을 볼 수 있습니다.",
+    examTip:"탑 1층 몸돌에는 당 장수 소정방이 백제를 무너뜨린 뒤 새긴 글이 남아 있습니다. 익산 미륵사지 석탑과 함께 백제 석탑으로 묶으세요.",
     sourceUrl:"https://www.heritage.go.kr/heri/cul/culSelectDetail.do?assetnamel=&ccbaAsno=00090000&ccbaCpno=1113400090000&ccbaCtcd=34&ccbaKdcd=11&ccbaLcto=36&culPageNo=1&header=region&pageNo=1_1_3_0&returnUrl=%2Fheri%2Fcul%2FculSelectRegionList.do&s_ctcd=34&s_kdcd=",
   },
   {
@@ -192,4 +192,5 @@ export const visualQuizExtras:Encounter[]=extraEncounterData.map(item=>({
   summary:item.summary,
   examTip:item.examTip,
   sourceUrl:item.sourceUrl,
+  heritageUrl:item.type==="유물"||item.type==="유적"?heritageSearchUrl(item.name):undefined,
 }));

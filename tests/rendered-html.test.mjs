@@ -192,3 +192,17 @@ test("lesson 3-10 visual clues describe concrete deeds and features",async()=>{
   assert.match(encounters,/if\(!content\)throw new Error/);
   assert.match(quiz,/\^이 대상\(\?:은\|는\|이\|가\)/);
 });
+
+test("artifact collection entries expose detailed descriptions and heritage search",async()=>{
+  const [encounters,extras,game]=await Promise.all([read("app/encounters.ts"),read("app/era-visual-quiz/extra-encounters.ts"),read("app/GameQuizApp.tsx")]);
+  assert.match(encounters,/금동 미륵보살 반가사유상은 삼국 시대에 구리로 형태를 만들고 표면에 금을 입힌 불상/);
+  assert.match(encounters,/다보탑은 통일 신라 8세기에 경주 불국사 대웅전 앞에 세운 석탑/);
+  assert.match(encounters,/석굴암 본존불은 통일 신라 8세기에 화강암을 짜 맞춰 만든 인공 석굴/);
+  assert.match(encounters,/heritageSearchUrl\(item\.name\)/);
+  assert.match(extras,/heritageSearchUrl\(item\.name\)/);
+  assert.match(game,/국가유산 검색 ↗/);
+  assert.match(game,/collection-detail-label/);
+  for(const source of [encounters,extras]){
+    assert.doesNotMatch(source,/강의의 핵심 (?:인물|유물|유적)|강의 필기의 시대적 맥락|특징과 관련 사건·제도를 같은 시대의 유사 개념과 구별/);
+  }
+});
