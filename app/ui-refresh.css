@@ -123,6 +123,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
 
 /* Ranking */
 .ranking-section{padding-top:38px}.my-ranking{border-radius:var(--radius);padding:22px 24px;background:#f2e5c9}.my-ranking strong{font-family:"Gowun Batang",serif}
+.ranking-error,.sync-error{border:1px solid #d8897e;border-radius:12px;background:#fff0ed;color:#8f3027}.ranking-error{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding:14px 16px}.ranking-error span{flex:1;font-size:12px}.ranking-error button{border:1px solid currentColor;border-radius:8px;background:white;color:inherit;padding:7px 10px;font-weight:800;cursor:pointer}.sync-error{padding:12px 14px;font-size:12px;font-weight:700}
 .podium{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 22px}.podium article{display:grid;gap:7px;padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--paper);text-align:center}.podium article.first{border-color:#c99a45;background:#fff8e8}.podium span{color:var(--red);font-size:12px;font-weight:800}.podium strong{font:700 19px "Gowun Batang",serif}.podium p{margin:0;color:var(--muted);font-size:12px}.podium b{color:#8d631d}
 .podium small{color:#6c727b;font-size:10px}.ranking-name{display:grid;gap:3px;min-width:0}.ranking-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ranking-name small{color:#78766f;font-size:10px}
 .ranking-table{overflow:hidden;border-radius:14px}.ranking-head{background:var(--navy)}.ranking-row{min-height:62px}.ranking-row:hover{background:#faf5eb}

@@ -25,7 +25,7 @@ export class FirestoreProgressRepository implements ProgressRepository{
     const ref=this.db.collection(collectionName).doc(userId);
     return this.db.runTransaction(async tx=>{const snapshot=await tx.get(ref);if(!snapshot.exists)throw new Error("먼저 계정 진행 기록을 생성해야 합니다.");const before=decode(snapshot.data()!);verifyTransition(before,input);const player={...before,...input,...derived(input),displayName,updatedAt:Date.now()};tx.update(ref,{...player,updatedAt:FieldValue.serverTimestamp()});return player;});
   }
-  async leaderboard(limit:number){const snapshot=await this.db.collection(collectionName).orderBy("rankScore","desc").orderBy("updatedAt","asc").limit(limit).get();return snapshot.docs.map((doc,index)=>{const player=decode(doc.data());return this.public(player,index+1);});}
+  async leaderboard(limit:number){const snapshot=await this.db.collection(collectionName).orderBy("rankScore","desc").limit(limit).get();return snapshot.docs.map((doc,index)=>{const player=decode(doc.data());return this.public(player,index+1);});}
   async rankOf(player:PlayerProgress){const snapshot=await this.db.collection(collectionName).where("rankScore",">",player.rankScore).count().get();return snapshot.data().count+1;}
   private public(player:PlayerProgress,rank:number):RankedPlayer{return {rank,displayName:player.displayName,currentGold:player.currentGold,totalGold:player.totalGold,xp:player.xp,level:player.level,title:player.title,bossesDefeated:player.bossesDefeated,masteredLessons:player.masteredLessons,lessonBosses:player.lessonBosses};}
 }

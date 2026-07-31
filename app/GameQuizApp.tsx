@@ -21,6 +21,10 @@ type RankingPlayer={rank:number;displayName:string;currentGold:number;totalGold:
 type RankingData={players:Array<RankingPlayer&{xp:number;level:number;title:string}>;me:(RankingPlayer&{xp:number;level:number;title:string;rewardVersion:number;visualCorrect:number;selectedTitle:string;titles:string[];defeated:Record<string,boolean>;collection:Record<string,boolean>;attempts:Record<string,number>;perfectBosses:Record<string,boolean>;visualPerfectEras:Record<string,boolean>})|null};
 type Answer={question:Question;selected:string;correct:boolean};
 
+const responseError=async(response:Response,fallback:string)=>{const data=await response.json().catch(()=>({}));return new Error(typeof data.error==="string"?data.error:fallback)};
+const requestRanking=async()=>{const response=await fetch("/api/leaderboard",{cache:"no-store"});if(!response.ok)throw await responseError(response,"순위표를 불러오지 못했습니다.");return response.json() as Promise<RankingData>};
+const saveProgress=async(progress:ClientProgress)=>{const response=await fetch("/api/leaderboard",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(progressWrite(progress))});if(!response.ok)throw await responseError(response,"진행 기록을 저장하지 못했습니다.");return response.json()};
+
 const bossLevels:BossLevel[]=[1,2,3];
 const bossCosts:Record<BossLevel,number>={1:30,2:50,3:70};
 const bossKey=(lesson:number,level:BossLevel)=>`${lesson}-${level}`;
@@ -74,6 +78,8 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   const [choice,setChoice]=useState<string|null>(null);
   const [ranking,setRanking]=useState<RankingData>({players:[],me:null});
   const [rankingLoading,setRankingLoading]=useState(false);
+  const [rankingError,setRankingError]=useState("");
+  const [progressSaveError,setProgressSaveError]=useState("");
   const [homeEra,setHomeEra]=useState<LessonEraKey|null>(null);
   const [collectionEra,setCollectionEra]=useState<LessonEraKey>("ancient");
   const [collectionType,setCollectionType]=useState<CollectionType>("전체");
@@ -92,8 +98,8 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
       if(view==="collection")setScreen("collection");
       if(view==="leaderboard"){
         setScreen("leaderboard");setRankingLoading(true);
-        fetch("/api/leaderboard",{cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject())
-          .then((data:RankingData)=>setRanking(data)).finally(()=>setRankingLoading(false));
+        requestRanking().then(data=>{setRanking(data);setRankingError("")})
+          .catch(()=>setRankingError("순위표를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")).finally(()=>setRankingLoading(false));
       }
     },0);
     return()=>window.clearTimeout(timer);
@@ -102,21 +108,18 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
     if(!ready)return;
     if(!user)return;
     let active=true;
-    fetch("/api/leaderboard",{cache:"no-store"})
-      .then(response=>response.ok?response.json():Promise.reject())
-      .then((data:RankingData)=>{
+    requestRanking()
+      .then(data=>{
         if(!active)return;
         setRanking(data);
+        setRankingError("");
         if(data.me)setProgress(old=>({...old,gold:data.me!.currentGold,totalGold:data.me!.totalGold,xp:data.me!.xp,rewardVersion:data.me!.rewardVersion,visualCorrect:data.me!.visualCorrect,selectedTitle:data.me!.selectedTitle,defeated:data.me!.defeated,collection:data.me!.collection,attempts:data.me!.attempts,perfectBosses:data.me!.perfectBosses,visualPerfectEras:data.me!.visualPerfectEras}));
-      }).finally(()=>{if(active)setServerReady(true)});
+      }).catch(()=>{if(active)setRankingError("순위표를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.")}).finally(()=>{if(active)setServerReady(true)});
     return()=>{active=false};
   },[ready,user]);
   useEffect(()=>{
     if(!ready||!serverReady||!user)return;
-    const timer=setTimeout(()=>fetch("/api/leaderboard",{
-      method:"POST",headers:{"content-type":"application/json"},
-      body:JSON.stringify(progressWrite(progress)),
-    }).catch(()=>{}),250);
+    const timer=setTimeout(()=>saveProgress(progress).then(()=>setProgressSaveError("")).catch(error=>setProgressSaveError(error instanceof Error?error.message:"진행 기록을 저장하지 못했습니다.")),250);
     return()=>clearTimeout(timer);
   },[progress,ready,serverReady,user]);
 
@@ -140,10 +143,13 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   const rank=progressSummary.selectedTitle;
   const playerLevel=progressSummary.level;
 
-  const openLeaderboard=()=>{
+  const openLeaderboard=async()=>{
     setScreen("leaderboard");setRankingLoading(true);scrollTo({top:0,behavior:"smooth"});
-    fetch("/api/leaderboard",{cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject())
-      .then((data:RankingData)=>setRanking(data)).finally(()=>setRankingLoading(false));
+    try{
+      if(user){await saveProgress(progress);setProgressSaveError("")}
+      const data=await requestRanking();setRanking(data);setRankingError("");
+    }catch(error){setRankingError(error instanceof Error?error.message:"순위표를 불러오지 못했습니다.")}
+    finally{setRankingLoading(false)}
   };
   const openCollection=()=>{setScreen("collection");scrollTo({top:0,behavior:"smooth"})};
   const goLesson=(target:Lesson)=>{
@@ -227,7 +233,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
     const correctCount=answers.filter(item=>item.correct).length;
     const wrongCount=answers.length-correctCount;
     const combo=answerStreak(answers);
-    const bossHp=Math.max(0,90-correctCount*10);
+    const bossHp=Math.max(0,100-correctCount*10);
     const shield=Math.max(0,1-wrongCount);
     return <main className={`quiz-shell ${mode}-quiz`}>
       <header className="quiz-head">
@@ -243,7 +249,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
           <b>{choice?(correct?"정답!":"반격!"):`${index+1}/${quizLength}`}</b>
         </div>
         {mode==="boss"&&<div className="battle-hud">
-          <div className="boss-hp"><span><b>{encounter.name}</b><small>{bossHp} / 90 HP</small></span><div><i style={{width:`${bossHp/90*100}%`}}/></div></div>
+          <div className="boss-hp"><span><b>{encounter.name}</b><small>{bossHp} / 100 HP</small></span><div><i style={{width:`${bossHp}%`}}/></div></div>
           <div className={`player-shield ${shield===0?"broken":""}`}><span>나의 방패</span><b>{shield?"●":"○"}</b><small>{wrongCount>=2?"승리 조건 실패 · 끝까지 복습하세요":shield?"한 번의 실수를 막을 수 있습니다":"다음 오답부터 승리할 수 없습니다"}</small></div>
           {combo>=2&&<strong className={`combo combo-${Math.min(combo,5)}`}>{combo}연속 정답{combo>=5?" · 금빛 일격!":"!"}</strong>}
         </div>}
@@ -276,6 +282,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
       <h1>{practice?`${score*10} 골드 획득!`:won?"보스를 쓰러뜨렸습니다!":"9문제를 맞히면 승리합니다"}</h1>
       <div className="result-score"><strong>{score}</strong><span>/ {quizLength}</span></div>
       <div className="reward-summary"><span><small>획득 골드</small><strong>+{resultReward.gold} G</strong></span><span><small>획득 경험치</small><strong>+{resultReward.xp} XP</strong></span></div>
+      {progressSaveError&&<p className="sync-error" role="alert">계정 저장 오류: {progressSaveError}</p>}
       {collected&&<p className="collection-added">도감에 ‘{encounter.name}’이 등록되었습니다.</p>}
       {resultReward.newTitles.length>0&&<div className="title-unlocked"><small>새 칭호 획득</small><strong>{resultReward.newTitles.join(" · ")}</strong></div>}
       {wrong.length>0&&<div className="review"><h2>이번 오답 개념</h2>{wrong.map(item=><div key={item.question.id}><strong>{item.question.concept}</strong><small>강의 필기 {item.question.page}</small><p>{item.question.explanation}</p></div>)}</div>}
@@ -323,6 +330,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
     return <main className="app-screen">{nav}
       <section className="simple-hero"><p className="eyebrow">명예의 전당</p><h1>한국사 원정대 TOP 10</h1><p>보스 처치 수, 총 획득 골드, 보유 골드 순으로 정합니다.</p></section>
       <section className="ranking-section">
+        {rankingError&&<div className="ranking-error" role="alert"><strong>순위표를 표시하지 못했습니다.</strong><span>{rankingError}</span><button onClick={openLeaderboard}>다시 불러오기</button></div>}
         {user?<div className="my-ranking"><div><small>나의 순위</small><strong>{ranking.me?`${ranking.me.rank}위`:"기록 대기 중"}</strong><span>{user.displayName} · Lv.{ranking.me?.level??playerLevel.level} · {ranking.me?.title??rank}{anonymousUser?" · 이 브라우저에서만 이어집니다.":""}</span></div><div><small>총 골드</small><strong>{ranking.me?.totalGold??progress.totalGold} G</strong></div><div><small>보스</small><strong>{ranking.me?.bossesDefeated??totalDefeated}명</strong></div><FirebaseAuthButton authenticated firebaseUser={firebaseUser} anonymousUser={anonymousUser} fallbackHref={signOutHref}/></div>
           :<div className="signin-panel"><div><strong>로그인하면 기록이 계정에 저장됩니다.</strong><p>Google 계정 또는 익명 계정으로 골드와 보스 진행 상황을 저장할 수 있습니다.</p></div><Link className="auth-page-link" href="/">로그인하기</Link></div>}
         {!rankingLoading&&podium.length>0&&<div className="podium">{podium.map(player=><article key={`${player.rank}-${player.displayName}`} className={player.rank===1?"first":""}><span>{player.rank}위</span><strong>{player.displayName}</strong><small>Lv.{player.level} · {player.title}</small><p>보스 {player.bossesDefeated}명</p><b>{player.totalGold} G</b></article>)}</div>}
