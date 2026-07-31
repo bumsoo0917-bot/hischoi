@@ -347,7 +347,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
     return <main className="app-screen">{nav}
       <section className="lesson-hero"><div><p className="eyebrow">{lesson.id}강 보스 원정</p><h1>{lesson.title}</h1><p>연습 5문제로 골드를 모으고, 보스전에서 10문제 중 9문제를 맞히세요.</p></div><div className="lesson-stat"><span>보스 처치</span><strong>{done}<small>/3</small></strong><div><i style={{width:`${done/3*100}%`}}/></div></div></section>
       <section className="stage-section">
-        <div className="section-head"><div><p className="eyebrow">연습과 보스전</p><h2>한 단계씩 도전하세요</h2></div><a href={lesson.videoUrl} target="_blank" rel="noreferrer">강의 다시 보기 ↗</a></div>
+        <div className="section-head"><div><p className="eyebrow">연습과 보스전</p><h2>한 단계씩 도전하세요</h2></div>{lesson.videoUrl&&<a href={lesson.videoUrl} target="_blank" rel="noreferrer">강의 다시 보기 ↗</a>}</div>
         <div className="practice-panel"><div><p>연습 · {trainingLevel}단계 문제</p><h3>5문제, 정답마다 10 G · 5 XP</h3><span>연습 상대는 시작할 때 공개됩니다.</span></div><div className="practice-reward"><strong>{progress.gold} G</strong><button className="primary" onClick={startPractice}>연습 시작</button></div></div>
         <div className="bosses">{bossLevels.map(item=>{
           const target=bossEncounter(lesson.id,item)!;
