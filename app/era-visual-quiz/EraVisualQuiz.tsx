@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import AppNavigation from "../AppNavigation";
 import { buildVisualQuiz, type VisualEra, type VisualQuestion, visualEncountersForEra, visualEras } from "./quiz-data";
 
 type Screen="select"|"quiz"|"result";
@@ -35,13 +36,18 @@ export default function EraVisualQuiz(){
     setScreen("result");goTop();
   };
 
-  const nav=<nav><Link className="brand" href="/"><span>史</span>한국사 수련장</Link><span>시대별 그림 퀴즈</span><Link className="nav-rank" href="/">30강 원정</Link>{screen!=="select"&&<button className="nav-link" onClick={openSelect}>시대 선택</button>}</nav>;
+  const nav=<AppNavigation items={[
+    {label:"30강 원정",shortLabel:"원정",href:"/"},
+    {label:"그림 퀴즈",shortLabel:"그림 퀴즈",active:true,onClick:openSelect},
+    {label:"도감",shortLabel:"도감",href:"/?view=collection"},
+    {label:"TOP 10",shortLabel:"순위",href:"/?view=leaderboard"},
+  ]}/>;
 
   if(screen==="quiz"&&current){
     const correct=choice===current.answer;
     return <main className="quiz-shell visual-quiz">
       <header className="quiz-head">
-        <button onClick={openSelect}>← 중단</button>
+        <button className="quiet-button" onClick={openSelect}>← 중단</button>
         <div><span>{era.title} · 그림 퀴즈</span><strong>인물·유물·유적 맞히기</strong></div>
         <b>{index+1} / {quiz.length}</b>
       </header>
@@ -61,8 +67,8 @@ export default function EraVisualQuiz(){
         {choice&&<div className={`explain ${correct?"right":"miss"}`}>
           <strong>{correct?"정답입니다!":`정답은 ‘${current.answer}’입니다.`}</strong>
           <p>{current.encounter.examTip}</p>
-          <small className="question-source">근거: 최태성 강의 필기 {current.encounter.page}<span className="source-links"><a href={current.encounter.noteUrl} target="_blank" rel="noreferrer">해당 필기 보기 ↗</a><a href={current.encounter.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></span></small>
-          <button className="primary" onClick={next}>{index===quiz.length-1?"결과 확인":"다음 문제"} →</button>
+          <details className="source-details"><summary>문제 근거 확인</summary><small className="question-source">근거: 최태성 강의 필기 {current.encounter.page}<span className="source-links"><a href={current.encounter.noteUrl} target="_blank" rel="noreferrer">해당 필기 보기 ↗</a><a href={current.encounter.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></span></small></details>
+          <div className="answer-actions"><button className="primary" onClick={next}>{index===quiz.length-1?"결과 확인":"다음 문제"} →</button></div>
         </div>}
       </section>
     </main>;
@@ -84,8 +90,8 @@ export default function EraVisualQuiz(){
     </section></main>;
   }
 
-  return <main>{nav}
-    <section className="simple-hero"><p className="eyebrow">시대별 그림 퀴즈</p><h1>어느 시대부터 알아볼까요?</h1><p>그림과 짧은 설명을 보고 여러 시대가 섞인 네 보기 중 정답을 고르세요.</p></section>
+  return <main className="app-screen">{nav}
+    <section className="simple-hero visual-hero"><p className="eyebrow">시대별 그림 퀴즈</p><h1>그림으로 시대를 기억하세요</h1><p>인물·유물·유적을 보고 여러 시대가 섞인 네 보기 중 정답을 고르세요.</p></section>
     <section className="visual-era-section">
       <div className="visual-era-guide"><strong>진행 방식</strong><span>시대 선택</span><b>→</b><span>무작위 10문제</span><b>→</b><span>같은 시대 + 다른 시대 선지</span><b>→</b><span>바로 정답 확인</span></div>
       <div className="visual-era-grid">{visualEras.map(targetEra=>{
