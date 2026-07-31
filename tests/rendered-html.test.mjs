@@ -163,3 +163,20 @@ test("era visual quiz adds note-based art and mixes one cross-era distractor",as
   assert.match(game,/href="\/era-visual-quiz"/);
   assert.match(page,/if\(!user\)redirect\("\/"\)/);
 });
+
+test("lesson 3-10 visual clues describe concrete deeds and features",async()=>{
+  const [encounters,quiz]=await Promise.all([read("app/encounters.ts"),read("app/era-visual-quiz/quiz-data.ts")]);
+  const block=encounters.match(/const detailedEncounterContent:[\s\S]*?=\{([\s\S]*?)\n\};\n\nconst extendedEncounters/);
+  assert.ok(block,"3~10강 상세 단서 목록이 있어야 합니다.");
+  const entries=[...block[1].matchAll(/^  "([^"]+)":\{summary:"([^"]+)",examTip:"([^"]+)"\},$/gm)];
+  assert.equal(entries.length,40,"3~10강의 인물·유물·유적 40개에 고유 단서가 있어야 합니다.");
+  const people=["광개토 대왕","근초고왕","진흥왕","장수왕","성왕","문무왕","신문왕","대조영","장보고","발해 무왕","태조 왕건","광종","성종","서희","강감찬","공민왕"];
+  const summaries=new Map(entries.map(([,name,summary])=>[name,summary]));
+  for(const name of people){
+    assert.ok(summaries.has(name),`${name}의 업적 단서가 있어야 합니다.`);
+    assert.doesNotMatch(summaries.get(name),/강의 핵심|시대적 맥락/,`${name}에 공통 설명을 사용하면 안 됩니다.`);
+  }
+  assert.doesNotMatch(encounters,/강의 핵심 \$\{type\}/);
+  assert.match(encounters,/if\(!content\)throw new Error/);
+  assert.match(quiz,/\^이 대상\(\?:은\|는\|이\|가\)/);
+});
