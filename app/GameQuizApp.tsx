@@ -6,10 +6,13 @@ import { useEffect, useMemo, useState } from "react";
 import { bossEncounter, encounterById, encounters, practiceEncounters } from "./encounters";
 import { Lesson, Question, lessons, questionBank } from "./questions";
 import FirebaseAuthButton from "./FirebaseAuthButton";
+import AppNavigation from "./AppNavigation";
 
 type BossLevel=1|2|3;
 type Screen="home"|"lesson"|"quiz"|"result"|"leaderboard"|"collection";
 type Mode="practice"|"boss";
+type LessonEraKey="ancient"|"goryeo"|"joseon"|"occupation"|"modern";
+type CollectionType="전체"|"인물"|"유물"|"유적"|"역사 자료";
 type User={displayName:string;email:string};
 type RankingPlayer={rank:number;displayName:string;currentGold:number;totalGold:number;bossesDefeated:number;masteredLessons:number;lessonBosses:Record<number,number>};
 type RankingData={players:RankingPlayer[];me:(RankingPlayer&{defeated:Record<string,boolean>;collection:Record<string,boolean>;attempts:Record<string,number>})|null};
@@ -31,6 +34,15 @@ const bossLevels:BossLevel[]=[1,2,3];
 const bossCosts:Record<BossLevel,number>={1:30,2:50,3:70};
 const bossKey=(lesson:number,level:BossLevel)=>`${lesson}-${level}`;
 const playableLessonIds=Array.from({length:30},(_,index)=>index+1);
+const lessonEraGroups:{id:LessonEraKey;label:string;period:string;from:number;to:number}[]=[
+  {id:"ancient",label:"선사·고대",period:"1~7강",from:1,to:7},
+  {id:"goryeo",label:"고려",period:"8~12강",from:8,to:12},
+  {id:"joseon",label:"조선",period:"13~18강",from:13,to:18},
+  {id:"occupation",label:"개항·일제",period:"19~27강",from:19,to:27},
+  {id:"modern",label:"현대",period:"28~30강",from:28,to:30},
+];
+const collectionTypes:CollectionType[]=["전체","인물","유물","유적","역사 자료"];
+const eraForLesson=(lessonId:number)=>lessonEraGroups.find(group=>lessonId>=group.from&&lessonId<=group.to)??lessonEraGroups[0];
 
 function shuffle<T>(items:T[]){
   const copy=[...items];
@@ -84,11 +96,27 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   const [choice,setChoice]=useState<string|null>(null);
   const [ranking,setRanking]=useState<RankingData>({players:[],me:null});
   const [rankingLoading,setRankingLoading]=useState(false);
+  const [homeEra,setHomeEra]=useState<LessonEraKey|null>(null);
+  const [collectionEra,setCollectionEra]=useState<LessonEraKey>("ancient");
+  const [collectionType,setCollectionType]=useState<CollectionType>("전체");
+  const [collectionFoundOnly,setCollectionFoundOnly]=useState(false);
 
   // Local storage is an external progress store; hydration intentionally happens once after mount.
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(()=>{setProgress(migrateProgress());setReady(true)},[]);
   useEffect(()=>{if(ready)localStorage.setItem("history-master-progress-v3",JSON.stringify(progress))},[progress,ready]);
+  useEffect(()=>{
+    const timer=window.setTimeout(()=>{
+      const view=new URLSearchParams(window.location.search).get("view");
+      if(view==="collection")setScreen("collection");
+      if(view==="leaderboard"){
+        setScreen("leaderboard");setRankingLoading(true);
+        fetch("/api/leaderboard",{cache:"no-store"}).then(response=>response.ok?response.json():Promise.reject())
+          .then((data:RankingData)=>setRanking(data)).finally(()=>setRankingLoading(false));
+      }
+    },0);
+    return()=>window.clearTimeout(timer);
+  },[]);
   useEffect(()=>{
     if(!ready)return;
     if(!user){
@@ -121,6 +149,13 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   const mastered=playableLessonIds.filter(id=>defeatedCount(progress,id)===3).length;
   const collectionCount=encounters.filter(item=>progress.collection[item.id]).length;
   const encounter=encounterById(encounterId);
+  const recommendedLesson=lessons.find(item=>item.status==="ready"&&defeatedCount(progress,item.id)<3)??lessons[lessons.length-1];
+  const recommendedDone=defeatedCount(progress,recommendedLesson.id);
+  const recommendedEra=eraForLesson(recommendedLesson.id);
+  const activeHomeEra=lessonEraGroups.find(group=>group.id===(homeEra??recommendedEra.id))??recommendedEra;
+  const homeLessons=lessons.filter(item=>item.id>=activeHomeEra.from&&item.id<=activeHomeEra.to);
+  const collectionGroup=lessonEraGroups.find(group=>group.id===collectionEra)??lessonEraGroups[0];
+  const overallProgress=Math.round(totalDefeated/90*100);
   const rank=useMemo(()=>{
     if(mastered)return `${mastered}개 강의 달인`;
     if(totalDefeated>=3)return "한국사 보스 사냥꾼";
@@ -190,14 +225,18 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
 
   if(!ready)return <main className="loading"><span>史</span><p>모험 기록을 불러오는 중...</p></main>;
 
-  const nav=<Nav home={screen==="home"?undefined:()=>setScreen("home")} gold={progress.gold} user={user}
-    onLeaderboard={openLeaderboard} onCollection={openCollection} collectionCount={collectionCount}/>;
+  const nav=<AppNavigation gold={progress.gold} userName={user?.displayName} onBrandClick={()=>setScreen("home")} items={[
+    {label:"30강 원정",shortLabel:"원정",active:screen==="home"||screen==="lesson",onClick:()=>setScreen("home")},
+    {label:"그림 퀴즈",shortLabel:"그림 퀴즈",href:"/era-visual-quiz"},
+    {label:`도감 ${collectionCount}/${encounters.length}`,shortLabel:"도감",active:screen==="collection",onClick:openCollection},
+    {label:"TOP 10",shortLabel:"순위",active:screen==="leaderboard",onClick:openLeaderboard},
+  ]}/>;
 
   if(screen==="quiz"&&current&&encounter){
     const correct=choice===current.answer;
     return <main className={`quiz-shell ${mode}-quiz`}>
       <header className="quiz-head">
-        <button onClick={()=>setScreen("lesson")}>← 중단</button>
+        <button className="quiet-button" onClick={()=>setScreen("lesson")}>← 중단</button>
         <div><span>{lesson.id}강 · {mode==="practice"?"연습":"보스전"}</span><strong>{encounter.name}</strong></div>
         <b className="gold-badge">{progress.gold} G</b>
       </header>
@@ -209,7 +248,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
           <b>{choice?(correct?"정답!":"반격!"):`${index+1}/${quizLength}`}</b>
         </div>
         <div className="q-meta"><span>문제 {index+1} / {quizLength}</span><span>{mode==="practice"?"정답마다 +10 G":"통과 기준 9 / 10"}</span></div>
-        <p className="pdf-page">주 출처 · 최태성 강의 필기 {current.page}</p>
+        <p className="question-kicker">{lesson.id}강 · {mode==="practice"?"개념 연습":`${level}단계 보스전`}</p>
         <h1>{current.prompt}</h1>
         <div className="choices">{current.choices.map((item,i)=>{
           const className=choice?(item===current.answer?"correct":item===choice?"wrong":"dim"):"";
@@ -218,8 +257,8 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
         {choice&&<div className={`explain ${correct?"right":"miss"}`}>
           <strong>{correct?"정답입니다!":"아쉽지만 해설로 다시 기억해요."}</strong>
           <p>{current.explanation}</p>
-          <small className="question-source">근거: {current.source}<span className="source-links"><a href={current.noteUrl} target="_blank" rel="noreferrer">해당 필기 보기 ↗</a><a href={current.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></span></small>
-          <button className="primary" onClick={next}>{index===quizLength-1?"결과 확인":"다음 문제"} →</button>
+          <details className="source-details"><summary>문제 근거 확인</summary><small className="question-source">근거: {current.source}<span className="source-links"><a href={current.noteUrl} target="_blank" rel="noreferrer">강의 필기 {current.page} ↗</a><a href={current.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></span></small></details>
+          <div className="answer-actions"><button className="primary" onClick={next}>{index===quizLength-1?"결과 확인":"다음 문제"} →</button></div>
         </div>}
       </section>
     </main>;
@@ -238,7 +277,8 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
       {collected&&<p className="collection-added">도감에 ‘{encounter.name}’이 등록되었습니다.</p>}
       {wrong.length>0&&<div className="review"><h2>이번 오답 개념</h2>{wrong.map(item=><div key={item.question.id}><strong>{item.question.concept}</strong><small>강의 필기 {item.question.page}</small><p>{item.question.explanation}</p></div>)}</div>}
       <div className="actions">
-        {practice?<button className="primary" onClick={startPractice}>다시 연습하기</button>:won?<button className="primary" onClick={()=>setScreen("lesson")}>다음 보스 준비</button>:<button className="primary" onClick={startPractice}>연습하기</button>}
+        {practice?<button className="primary" onClick={()=>setScreen("lesson")}>보스 준비하기</button>:won?<button className="primary" onClick={()=>setScreen("lesson")}>다음 보스 준비</button>:<button className="primary" onClick={startPractice}>연습하고 다시 도전</button>}
+        {practice&&<button className="secondary" onClick={startPractice}>다시 연습하기</button>}
         <button className="secondary" onClick={openCollection}>도감 보기</button>
         <button className="secondary" onClick={()=>setScreen("lesson")}>강의로 돌아가기</button>
       </div>
@@ -246,11 +286,21 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   }
 
   if(screen==="collection"){
-    return <main>{nav}
-      <section className="simple-hero"><p className="eyebrow">한국사 도감</p><h1>{collectionCount} / {encounters.length} 수집</h1><p>연습을 마치거나 보스를 처치하면 등록됩니다.</p></section>
-      <section className="collection-section">{playableLessonIds.map(lessonId=><div className="collection-group" key={lessonId}>
+    const visibleLessonIds=playableLessonIds.filter(id=>id>=collectionGroup.from&&id<=collectionGroup.to);
+    return <main className="app-screen">{nav}
+      <section className="simple-hero collection-hero"><p className="eyebrow">한국사 도감</p><h1>{collectionCount} / {encounters.length} 수집</h1><p>만난 인물과 유물·유적을 시대별로 다시 살펴보세요.</p><div className="hero-progress"><i style={{width:`${collectionCount/encounters.length*100}%`}}/></div></section>
+      <section className="collection-section">
+        <div className="filter-panel" aria-label="도감 필터">
+          <div className="filter-row"><strong>시대</strong><div>{lessonEraGroups.map(group=><button key={group.id} className={collectionEra===group.id?"active":""} onClick={()=>setCollectionEra(group.id)}>{group.label}</button>)}</div></div>
+          <div className="filter-row"><strong>종류</strong><div>{collectionTypes.map(type=><button key={type} className={collectionType===type?"active":""} onClick={()=>setCollectionType(type)}>{type}</button>)}</div></div>
+          <label className="found-toggle"><input type="checkbox" checked={collectionFoundOnly} onChange={event=>setCollectionFoundOnly(event.target.checked)}/> 발견한 항목만 보기</label>
+        </div>
+        {visibleLessonIds.map(lessonId=>{
+          const lessonItems=encounters.filter(item=>item.lessonId===lessonId&&(collectionType==="전체"||item.type===collectionType)&&(!collectionFoundOnly||progress.collection[item.id]));
+          if(!lessonItems.length)return null;
+          return <div className="collection-group" key={lessonId}>
         <h2>{lessonId}강</h2>
-        <div className="collection-grid">{encounters.filter(item=>item.lessonId===lessonId).map(item=>{
+        <div className="collection-grid">{lessonItems.map(item=>{
           const unlocked=progress.collection[item.id];
           return <article className={unlocked?"":"locked"} key={item.id}>
             {unlocked?<Image src={item.image} alt={item.name} width={180} height={180}/>:<div className="locked-art">?</div>}
@@ -259,18 +309,21 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
             </div>
           </article>;
         })}</div>
-      </div>)}</section>
+      </div>})}</section>
     </main>;
   }
 
   if(screen==="leaderboard"){
-    return <main>{nav}
+    const podium=ranking.players.slice(0,3);
+    const remaining=ranking.players.slice(3);
+    return <main className="app-screen">{nav}
       <section className="simple-hero"><p className="eyebrow">명예의 전당</p><h1>한국사 원정대 TOP 10</h1><p>보스 처치 수, 총 획득 골드, 보유 골드 순으로 정합니다.</p></section>
       <section className="ranking-section">
         {user?<div className="my-ranking"><div><small>나의 순위</small><strong>{ranking.me?`${ranking.me.rank}위`:"기록 대기 중"}</strong><span>{user.displayName}{anonymousUser?" · 이 브라우저에서만 이어집니다.":""}</span></div><div><small>총 골드</small><strong>{ranking.me?.totalGold??progress.totalGold} G</strong></div><div><small>보스</small><strong>{ranking.me?.bossesDefeated??totalDefeated}명</strong></div><FirebaseAuthButton authenticated firebaseUser={firebaseUser} anonymousUser={anonymousUser} fallbackHref={signOutHref}/></div>
           :<div className="signin-panel"><div><strong>로그인하면 기록이 계정에 저장됩니다.</strong><p>Google 계정 또는 익명 계정으로 골드와 보스 진행 상황을 저장할 수 있습니다.</p></div><Link className="auth-page-link" href="/">로그인하기</Link></div>}
+        {!rankingLoading&&podium.length>0&&<div className="podium">{podium.map(player=><article key={`${player.rank}-${player.displayName}`} className={player.rank===1?"first":""}><span>{player.rank}위</span><strong>{player.displayName}</strong><p>보스 {player.bossesDefeated}명</p><b>{player.totalGold} G</b></article>)}</div>}
         <div className="ranking-table"><div className="ranking-head"><span>순위</span><span>도전자</span><span>보스</span><span>총 골드</span><span>진행</span></div>
-          {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중...</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:ranking.players.map(player=><div className="ranking-row" key={`${player.rank}-${player.displayName}`}><b>{player.rank}</b><strong>{player.displayName}</strong><span>{player.bossesDefeated}명</span><span>{player.totalGold} G</span><span className="mini-progress"><i style={{width:`${player.bossesDefeated/90*100}%`}}/><small>완료 강의 {Object.values(player.lessonBosses??{}).filter(count=>count===3).length}/30</small></span></div>)}
+          {rankingLoading?<p className="ranking-empty">순위표를 불러오는 중...</p>:ranking.players.length===0?<p className="ranking-empty">아직 등록된 도전자가 없습니다.</p>:(remaining.length?remaining:ranking.players).map(player=><div className="ranking-row" key={`${player.rank}-${player.displayName}`}><b>{player.rank}</b><strong>{player.displayName}</strong><span>{player.bossesDefeated}명</span><span>{player.totalGold} G</span><span className="mini-progress"><i style={{width:`${player.bossesDefeated/90*100}%`}}/><small>완료 강의 {Object.values(player.lessonBosses??{}).filter(count=>count===3).length}/30</small></span></div>)}
         </div>
       </section>
     </main>;
@@ -279,7 +332,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
   if(screen==="lesson"){
     const done=defeatedCount(progress,lesson.id);
     const trainingLevel=nextBoss(progress,lesson.id);
-    return <main>{nav}
+    return <main className="app-screen">{nav}
       <section className="lesson-hero"><div><p className="eyebrow">{lesson.id}강 보스 원정</p><h1>{lesson.title}</h1><p>연습 5문제로 골드를 모으고, 보스전에서 10문제 중 9문제를 맞히세요.</p></div><div className="lesson-stat"><span>보스 처치</span><strong>{done}<small>/3</small></strong><div><i style={{width:`${done/3*100}%`}}/></div></div></section>
       <section className="stage-section">
         <div className="section-head"><div><p className="eyebrow">연습과 보스전</p><h2>한 단계씩 도전하세요</h2></div><a href={lesson.videoUrl} target="_blank" rel="noreferrer">강의 다시 보기 ↗</a></div>
@@ -291,8 +344,9 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
           const cost=defeated?0:bossCosts[item];
           const affordable=progress.gold>=cost;
           return <article key={item} className={`${defeated?"complete":""} ${!unlocked?"locked":""}`}>
+            <div className="boss-card-head"><span>{item}단계</span><b>{defeated?"처치 완료":!unlocked?"잠김":affordable?"도전 가능":`${cost-progress.gold} G 부족`}</b></div>
             <Image className="boss-art" src={target.image} alt={target.name} width={320} height={220}/>
-            <p>{item}단계 보스</p><h3>{target.name}</h3><span>{target.summary}</span>
+            <p>보스</p><h3>{target.name}</h3><span>{target.summary}</span>
             <div className="boss-stats"><span>10문제</span><span>통과 9/10</span><b>{defeated?"복습 무료":`${cost} G`}</b></div>
             <button onClick={()=>startBoss(item)} disabled={!unlocked||!affordable}>{defeated?"다시 도전":!unlocked?"이전 보스 필요":!affordable?`${cost-progress.gold} G 부족`:"보스 도전"}</button>
           </article>;
@@ -301,16 +355,18 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
     </main>;
   }
 
-  return <main>{nav}
-    <section className="home-hero"><div><p className="eyebrow">한국사 퀴즈 원정</p><h1>연습하고<br/><em>보스를 쓰러뜨리세요</em></h1><p className="hero-desc">5문제 연습으로 골드를 모으고, 각 강의의 보스 3명에게 도전하세요. 만난 유물과 유적은 도감에 기록됩니다.</p><div className="hero-actions"><button className="primary" onClick={()=>goLesson(lessons[0])}>첫 원정 시작 →</button><Link className="secondary" href="/era-visual-quiz">그림 퀴즈 →</Link></div></div>
-      <div className="master"><div><span>현재 칭호</span><span className="gold-text">{progress.gold} G</span></div><strong>{rank}</strong><p>보스 {totalDefeated}/90 · 도감 {collectionCount}/{encounters.length}</p><Link className="rank-button" href="/era-visual-quiz">시대별 그림 퀴즈</Link><button className="rank-button" onClick={openCollection}>도감 보기</button><button className="rank-button" onClick={openLeaderboard}>TOP 10 보기</button></div>
+  return <main className="app-screen">{nav}
+    <section className="home-dashboard">
+      <article className="continue-card">
+        <div className="continue-copy"><p className="eyebrow">이어서 하기</p><h1>{recommendedLesson.id}강 · {recommendedLesson.shortTitle}</h1><p>{recommendedDone===3?"달인으로 완료한 강의입니다. 복습으로 기억을 확인해 보세요.":`${recommendedDone}단계 보스까지 처치했습니다. ${nextBoss(progress,recommendedLesson.id)}단계 도전을 준비하세요.`}</p></div>
+        <div className="continue-progress"><span><b>{recommendedDone}</b>/3 보스</span><div><i style={{width:`${recommendedDone/3*100}%`}}/></div></div>
+        <div className="hero-actions"><button className="primary" onClick={()=>goLesson(recommendedLesson)}>원정 계속하기 →</button><Link className="secondary" href="/era-visual-quiz">그림 퀴즈</Link></div>
+      </article>
+      <aside className="profile-card"><div><span>현재 칭호</span><b className="gold-text">{progress.gold} G</b></div><h2>{rank}</h2><div className="profile-stats"><span><small>쓰러뜨린 보스</small><strong>{totalDefeated}<b>/90</b></strong></span><span><small>도감 수집</small><strong>{collectionCount}<b>/{encounters.length}</b></strong></span><span><small>완료 강의</small><strong>{mastered}<b>/30</b></strong></span></div><div className="overall-progress"><span>전체 원정 {overallProgress}%</span><div><i style={{width:`${overallProgress}%`}}/></div></div></aside>
     </section>
-    <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 지도</p><h2>현재 1~30강 전체를 플레이할 수 있습니다</h2></div></div>
-      <div className="lessons">{lessons.map(item=>{const done=defeatedCount(progress,item.id);return <button key={item.id} className={item.status} onClick={()=>goLesson(item)} disabled={item.status==="coming"}><span className="lesson-no">{String(item.id).padStart(2,"0")}</span><div><strong>{item.shortTitle}</strong><span>{item.status==="ready"?`보스 ${done}/3`:"준비 중"}</span></div><b>{done===3?"✓":item.status==="ready"?"→":"·"}</b></button>})}</div>
+    <section className="curriculum"><div className="section-head"><div><p className="eyebrow">30강 원정 지도</p><h2>시대별로 강의를 선택하세요</h2></div><span className="section-period">{activeHomeEra.label} · {activeHomeEra.period}</span></div>
+      <div className="era-tabs" role="group" aria-label="강의 시대 선택">{lessonEraGroups.map(group=><button key={group.id} className={activeHomeEra.id===group.id?"active":""} onClick={()=>setHomeEra(group.id)}>{group.label}<small>{group.period}</small></button>)}</div>
+      <div className="lessons">{homeLessons.map(item=>{const done=defeatedCount(progress,item.id);return <button key={item.id} className={`${item.status} ${done===3?"complete":done>0?"in-progress":""}`} onClick={()=>goLesson(item)} disabled={item.status==="coming"}><span className="lesson-no">{String(item.id).padStart(2,"0")}</span><div><strong>{item.shortTitle}</strong><span>{done===3?"달인 완료":done>0?`진행 중 · 보스 ${done}/3`:item.status==="ready"?"미도전":"준비 중"}</span></div><b>{done===3?"✓":"→"}</b></button>})}</div>
     </section>
   </main>;
-}
-
-function Nav({home,gold,user,onLeaderboard,onCollection,collectionCount}:{home?:()=>void;gold:number;user:User|null;onLeaderboard:()=>void;onCollection:()=>void;collectionCount:number}){
-  return <nav><button className="brand" onClick={home}><span>史</span>한국사 수련장</button><span>기본별개념 · 30강 원정</span><Link className="nav-rank" href="/era-visual-quiz">그림 퀴즈</Link><button className="nav-rank" onClick={onCollection}>도감 {collectionCount}/{encounters.length}</button><button className="nav-rank" onClick={onLeaderboard}>TOP 10</button><b className="nav-gold">{gold} G</b>{user&&<small className="nav-user">{user.displayName}</small>}{home&&<button className="nav-link" onClick={home}>전체 강의</button>}</nav>;
 }

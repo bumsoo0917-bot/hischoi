@@ -130,10 +130,16 @@ test("production metadata falls back to the current Vercel address",async()=>{
   assert.match(layout,/https:\/\/hischoi\.vercel\.app/);
 });
 
-test("era visual quiz uses existing encounter art with four unique choices",async()=>{
-  const [quiz,game,component,page]=await Promise.all([read("app/era-visual-quiz/quiz-data.ts"),read("app/GameQuizApp.tsx"),read("app/era-visual-quiz/EraVisualQuiz.tsx"),read("app/era-visual-quiz/page.tsx")]);
+test("era visual quiz adds note-based art and mixes one cross-era distractor",async()=>{
+  const [quiz,extras,game,component,page]=await Promise.all([read("app/era-visual-quiz/quiz-data.ts"),read("app/era-visual-quiz/extra-encounters.ts"),read("app/GameQuizApp.tsx"),read("app/era-visual-quiz/EraVisualQuiz.tsx"),read("app/era-visual-quiz/page.tsx")]);
   assert.equal([...quiz.matchAll(/\{id:"(?:prehistory|ancient|goryeo|joseon|opening|occupation|modern)"/g)].length,7);
+  assert.equal([...extras.matchAll(/id:"visual-(?:prehistory|ancient|goryeo|joseon|opening|occupation|modern)-/g)].length,23);
+  assert.match(extras,/image:`\/era-visual-quiz\/\$\{item\.file\}`/);
+  assert.match(extras,/noteUrl:`\/notes\/pdf-\$\{item\.pdfPage\}\.pdf`/);
   assert.match(quiz,/item\.type!=="역사 자료"/);
+  assert.match(quiz,/\.slice\(0,2\)/);
+  assert.match(quiz,/const outsideEra=/);
+  assert.match(quiz,/adjacentLessons\.has\(item\.lessonId\)/);
   assert.match(quiz,/slice\(0,3\)/);
   assert.match(quiz,/choices:shuffle\(\[answer\.name,\.\.\.distractors\.map/);
   assert.match(quiz,/split\(item\.name\)\.join\("이 대상"\)/);
