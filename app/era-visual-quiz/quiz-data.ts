@@ -44,7 +44,7 @@ function uniqueByName(items:Encounter[]):Encounter[]{
 
 function clueFor(item:Encounter):string{
   const hidden=item.summary.split(item.name).join("이 대상");
-  return hidden.replace(/^(이 대상은|이 대상이)\s*/,"").trim();
+  return hidden.replace(/^이 대상(?:은|는|이|가)\s*/,"").trim();
 }
 
 export function visualEncountersForEra(eraId:VisualEraId):Encounter[]{
