@@ -72,7 +72,21 @@ const prehistory:Fact[]=[
 ].map(row=>f(row as Parameters<typeof f>[0]));
 
 const titles=["우리는 왜 역사를 공부하는가","선사 시대~여러 나라의 성장","고대(삼국)","고대(남북국 시대)","고대(경제·사회)","고대(문화1)","고대(문화2)","고려(정치)","고려(외교)","고려(경제·사회)","고려(문화1)","고려(문화2)","조선(전기 정치)","조선(후기 정치)","조선(경제)","조선(사회)","조선(전기 문화)","조선(후기 문화)","개항기(흥선 대원군)","개항기(개항~갑신정변)","개항기(동학 농민 운동~대한 제국)","개항기(국권 피탈과 저항)","개항기(문화)","일제 강점기(식민 통치)","일제 강점기(1910년대 저항)","일제 강점기(1920년대 저항)","일제 강점기(1930년대 이후 저항)","현대(광복~6·25 전쟁)","현대(민주주의의 발전)","현대(경제 발전과 통일 정책)"];
-export const lessons:Lesson[]=titles.map((title,index)=>({id:index+1,title,shortTitle:title,status:"ready",videoUrl:index===0?"https://youtu.be/N_f97jxWZM8":index===1?"https://youtu.be/DBVMuINZtVo":undefined}));
+const lectureVideoIds=[
+  "N_f97jxWZM8","DBVMuINZtVo","0XKPpvjolWM","tKaWYM7nqko","6o4nH6F1G5k",
+  "UTsc_WKau9c","il0xbQ2J1W4","fFo6SR1Dz-Y","uUCGRpS_2OQ","MNicg0GKNOQ",
+  "RlRaBllEQ18","mzkVwKedeEQ","75VzsnxK6rE","lQ1wtlNTIqM","cUCJqSAhny4",
+  "LdACoesZra8","YDBkd6RHae8","Jh3XyXi7zmc","AUE3eEU39xA","m5qAIaLaKt8",
+  "tgfxK7-0N4k","eYLGmjvALOQ","D686ofuCVKQ","SqTwLMaLOWU","yXcyIuyBwMQ",
+  "oWjeEIsSG-s","K0vxC2h2DiI","m0aMdZLVUAo","ElEdgYJCj9k","A2v2ZXljrBk",
+];
+export const lessons:Lesson[]=titles.map((title,index)=>({
+  id:index+1,
+  title,
+  shortTitle:title,
+  status:"ready",
+  videoUrl:`https://www.youtube.com/watch?v=${lectureVideoIds[index]}`,
+}));
 
 function objectParticle(word:string){
   const code=word.charCodeAt(word.length-1);
