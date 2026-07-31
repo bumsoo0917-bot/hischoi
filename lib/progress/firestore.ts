@@ -1,13 +1,18 @@
 import { FieldValue, type DocumentData } from "firebase-admin/firestore";
 import { adminFirestore } from "../firebase-admin";
 import { derived, verifyTransition } from "./validation";
-import { PLAYABLE_LESSONS, type PlayerProgress, type ProgressRepository, type ProgressWrite, type RankedPlayer } from "./types";
+import { type PlayerProgress, type ProgressRepository, type ProgressWrite, type RankedPlayer } from "./types";
+import { BASE_TITLE, legacyXp, REWARD_VERSION } from "../gamification";
 
 const collectionName="playerProgress";
-const blank=(userId:string,displayName:string):PlayerProgress=>({userId,displayName,currentGold:0,totalGold:0,bossesDefeated:0,masteredLessons:0,title:"수련을 시작한 모험가",lessonProgress:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),{practiceAttempts:0,bossAttempts:0,bossesDefeated:0,mastered:false}])),lessonBosses:Object.fromEntries(PLAYABLE_LESSONS.map(lesson=>[String(lesson),0])),defeated:{},collection:{},attempts:{},updatedAt:Date.now(),rankScore:0});
+const blankWrite=():ProgressWrite=>({currentGold:0,totalGold:0,xp:0,rewardVersion:REWARD_VERSION,visualCorrect:0,selectedTitle:BASE_TITLE,defeated:{},collection:{},attempts:{},perfectBosses:{},visualPerfectEras:{}});
+const blank=(userId:string,displayName:string):PlayerProgress=>{const input=blankWrite();return {userId,displayName,...input,...derived(input),updatedAt:Date.now()}};
 const decode=(data:DocumentData):PlayerProgress=>{
   const defaults=blank(String(data.userId??""),String(data.displayName??"도전자"));
-  return {...defaults,...data,lessonProgress:{...defaults.lessonProgress,...data.lessonProgress},lessonBosses:{...defaults.lessonBosses,...data.lessonBosses},updatedAt:data.updatedAt?.toMillis?.()??Number(data.updatedAt)} as PlayerProgress;
+  const input:ProgressWrite={...blankWrite(),currentGold:Number(data.currentGold??0),totalGold:Number(data.totalGold??0),defeated:data.defeated??{},collection:data.collection??{},attempts:data.attempts??{},perfectBosses:data.perfectBosses??{},visualPerfectEras:data.visualPerfectEras??{},visualCorrect:Number(data.visualCorrect??0),selectedTitle:typeof data.selectedTitle==="string"?data.selectedTitle:BASE_TITLE,xp:Number(data.xp??0),rewardVersion:Number(data.rewardVersion??0)};
+  if(input.rewardVersion!==REWARD_VERSION){const previous=derived({...input,xp:0,rewardVersion:REWARD_VERSION});input.xp=legacyXp({bossesDefeated:previous.bossesDefeated,masteredLessons:previous.masteredLessons,collectionCount:Object.keys(input.collection).length});input.rewardVersion=REWARD_VERSION}
+  const computed=derived(input);
+  return {...defaults,...data,...input,...computed,lessonProgress:{...defaults.lessonProgress,...computed.lessonProgress},lessonBosses:{...defaults.lessonBosses,...computed.lessonBosses},updatedAt:data.updatedAt?.toMillis?.()??Number(data.updatedAt)} as PlayerProgress;
 };
 export class FirestoreProgressRepository implements ProgressRepository{
   private db=adminFirestore();
@@ -22,7 +27,7 @@ export class FirestoreProgressRepository implements ProgressRepository{
   }
   async leaderboard(limit:number){const snapshot=await this.db.collection(collectionName).orderBy("rankScore","desc").orderBy("updatedAt","asc").limit(limit).get();return snapshot.docs.map((doc,index)=>{const player=decode(doc.data());return this.public(player,index+1);});}
   async rankOf(player:PlayerProgress){const snapshot=await this.db.collection(collectionName).where("rankScore",">",player.rankScore).count().get();return snapshot.data().count+1;}
-  private public(player:PlayerProgress,rank:number):RankedPlayer{return {rank,displayName:player.displayName,currentGold:player.currentGold,totalGold:player.totalGold,bossesDefeated:player.bossesDefeated,masteredLessons:player.masteredLessons,lessonBosses:player.lessonBosses};}
+  private public(player:PlayerProgress,rank:number):RankedPlayer{return {rank,displayName:player.displayName,currentGold:player.currentGold,totalGold:player.totalGold,xp:player.xp,level:player.level,title:player.title,bossesDefeated:player.bossesDefeated,masteredLessons:player.masteredLessons,lessonBosses:player.lessonBosses};}
 }
 let repository:ProgressRepository|undefined;
 export const progressRepository=()=>repository??=new FirestoreProgressRepository();
