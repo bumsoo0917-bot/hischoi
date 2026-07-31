@@ -94,7 +94,7 @@ function noteUrl(page:string){
 // 함께 제시하면 둘 이상이 정답처럼 보일 수 있다. 아래 묶음 안의 개념은
 // 서로 오답 선택지로 사용하지 않는다.
 const ambiguityGroups=[
-  ["periodization","premodern","modern-era","sequence1","sequence2"],
+  ["periodization","premodern","modern-era","contemporary","sequence1","sequence2"],
   ["prehistoric","artifact","site-flow"],
   ["ancient","three-kingdoms","north-south"],
   ["politics","king","institution","diplomacy"],
@@ -113,6 +113,12 @@ const clarification:Record<string,string>={
   politics:"왕·제도·외교는 정치 분야를 구성하는 세부 항목이다. 문제는 이 항목들을 함께 묶는 상위 분야를 묻는다.",
   economy:"세금·토지·교역은 경제 분야를 구성하는 세부 항목이다. 문제는 이 항목들을 함께 묶는 상위 분야를 묻는다.",
 };
+
+const factById=new Map([...history,...prehistory].map(fact=>[fact.id,fact]));
+const ambiguityChoiceGroups=ambiguityGroups.map(group=>new Set(group.flatMap(id=>{
+  const fact=factById.get(id);
+  return fact?[fact.term,fact.clue,fact.advanced]:[];
+})));
 
 function safeWrongFacts(facts:Fact[],fact:Fact,index:number){
   const blocked=new Set([fact.id]);
@@ -151,6 +157,7 @@ export function validateQuestionBank(questions:Question[]=questionBank){
     ids.add(question.id);
     if(question.choices.length!==4||new Set(question.choices).size!==4)throw new Error(`보기는 서로 다른 4개여야 합니다: ${question.id}`);
     if(question.choices.filter(choice=>choice===question.answer).length!==1)throw new Error(`정답은 정확히 하나여야 합니다: ${question.id}`);
+    if(ambiguityChoiceGroups.some(group=>question.choices.filter(choice=>group.has(choice)).length>1))throw new Error(`상위·하위 또는 중복 정답 가능성이 있는 보기: ${question.id}`);
     if(!question.explanation||!question.noteUrl||!question.sourceUrl.startsWith("https://"))throw new Error(`출처 또는 해설 누락: ${question.id}`);
     const page=Number(question.page.match(/\d+/)?.[0]);
     const allowed:Record<number,number[]>={3:[6,7,8,9],4:[10,11],5:[12,13],6:[14,15],7:[16,17],8:[18,19,20,21],9:[22,23],10:[24,25],11:[26],12:[27,28,29],13:[30,31,32,33,34,35],14:[40,41],15:[36,37,42,43],16:[37,44],17:[38,39],18:[45,46],19:[47],20:[48,49],21:[50,51],22:[52],23:[53,54,55,56],24:[57],25:[58,59],26:[60,61],27:[62,63],28:[64,65],29:[66,67,68],30:[69,70]};
