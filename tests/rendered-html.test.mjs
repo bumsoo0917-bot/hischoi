@@ -94,6 +94,16 @@ test("gamification unifies the 150 lesson entries and 23 visual-only entries",as
   assert.match(visual,/visualPerfectEras/);
 });
 
+test("completed lessons have a prominent mastery state",async()=>{
+  const [game,styles]=await Promise.all([read("app/GameQuizApp.tsx"),read("app/ui-refresh.css")]);
+  assert.match(game,/달인 완료 · 보스 3\/3/);
+  assert.match(game,/lesson-status \$\{done===3\?"is-complete"/);
+  assert.match(game,/달인 완료, 보스 3명 모두 처치/);
+  assert.match(styles,/\.lessons button\.complete\{border:2px solid var\(--green\)/);
+  assert.match(styles,/\.lesson-status\.is-complete/);
+  assert.match(styles,/\.lesson-card-icon/);
+});
+
 test("lesson 11-30 source-note PDFs open as individual pages",async()=>{
   const pages=Array.from({length:45},(_,index)=>index+26);
   await Promise.all(pages.map(page=>access(new URL(`public/notes/pdf-${page}.pdf`,root))));

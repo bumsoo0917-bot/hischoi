@@ -75,8 +75,8 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
 .lessons{grid-template-columns:repeat(3,1fr);gap:12px}
 .lessons button{min-height:104px;padding:18px 20px;border-radius:13px;background:var(--paper);box-shadow:0 3px 0 rgba(16,35,63,.03)}
 .lessons button.ready:hover{border-color:#9e8e76;box-shadow:0 10px 24px rgba(16,35,63,.08)}
-.lessons button.in-progress{border-color:#c7943e;background:#fff9eb}.lessons button.complete{border-color:#72a087;background:#f4fbf6}
-.lessons .lesson-no{font:700 25px "Gowun Batang",serif}.lessons strong{font-size:15px}.lessons button div span{font-size:11px}.lessons button.complete b{color:var(--green)}
+.lessons button.in-progress{border-color:#c7943e;background:#fff9eb}.lessons button.complete{border:2px solid var(--green);background:linear-gradient(135deg,#edf8f1 0%,#dcefe4 100%);box-shadow:0 5px 0 rgba(40,112,78,.16),0 13px 28px rgba(40,112,78,.13);transform:translateY(-2px)}
+.lessons .lesson-no{font:700 25px "Gowun Batang",serif}.lessons strong{font-size:15px}.lessons button div span{font-size:11px}.lessons button.complete .lesson-no,.lessons button.complete strong{color:#164f36}.lessons button.complete strong{font-weight:800}.lessons .lesson-status.is-complete{display:inline-flex;width:max-content;padding:5px 9px;border-radius:999px;background:var(--green);color:white;font-size:10px;font-weight:800;letter-spacing:.02em}.lessons .lesson-card-icon{flex:0 0 auto}.lessons button.complete .lesson-card-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--green);color:white;font-size:21px;box-shadow:0 4px 10px rgba(40,112,78,.22)}.lessons button.complete:hover{border-color:#195e3f;background:linear-gradient(135deg,#e6f5eb 0%,#d2eadb 100%);box-shadow:0 6px 0 rgba(40,112,78,.18),0 16px 32px rgba(40,112,78,.16)}
 
 /* Lesson and stage cards */
 .lesson-hero{padding:62px max(24px,calc((100vw - 1180px)/2));background:linear-gradient(135deg,var(--navy),#1d3a61)}
