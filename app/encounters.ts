@@ -14,7 +14,10 @@ export type Encounter={
   examTip:string;
   noteUrl:string;
   sourceUrl:string;
+  heritageUrl?:string;
 };
+
+export const heritageSearchUrl=(name:string)=>`https://www.heritage.go.kr/heri/cul/culSelectViewList.do?searchCondition=${encodeURIComponent(name)}&pageNo=1_1_1_1`;
 
 const overviewUrl="https://contents.history.go.kr/front/ta/print.do?levelId=ta_h41_0030_0010&whereStr=";
 const prehistoryUrl="https://contents.history.go.kr/front/ta/print.do?levelId=ta_m71_0020_0010_0040&whereStr=";
@@ -47,11 +50,11 @@ const detailedEncounterContent:Record<string,{summary:string;examTip:string}>={
   "발해 상경성":{summary:"발해 상경성은 당의 장안성을 본떠 바둑판 모양 도로와 주작대로를 갖춘 발해의 대표 수도 유적입니다.",examTip:"당 문화의 영향을 받은 발해의 수도 구조를 확인하세요."},
   "동시전 저울":{summary:"동시전 저울은 지증왕 때 수도에 설치한 시장인 동시를 감독하고 물품 거래를 관리하던 모습을 상징하는 도구입니다.",examTip:"지증왕의 동시 설치와 동시전의 시장 감독 기능을 구별해 기억하세요."},
   "장보고 무역선":{summary:"장보고 무역선은 청해진을 근거지로 신라·당·일본 사이의 해상 교역을 주도한 통일 신라의 국제 무역을 상징합니다.",examTip:"완도 청해진과 동아시아 해상 교역망을 연결하세요."},
-  "금동 미륵보살 반가사유상":{summary:"금동 미륵보살 반가사유상은 한쪽 다리를 다른 무릎 위에 올리고 손가락을 뺨에 댄 채 생각에 잠긴 삼국 시대의 불교 조각입니다.",examTip:"반가사유 자세와 삼국 시대의 수준 높은 금동 불상이라는 점을 확인하세요."},
-  "다보탑":{summary:"다보탑은 불국사에 세워진 통일 신라의 석탑으로, 복잡하고 화려한 구조가 돋보이는 독창적인 문화유산입니다.",examTip:"같은 불국사의 단정한 삼층 석탑인 석가탑과 형태를 구별하세요."},
-  "석굴암 본존불":{summary:"석굴암 본존불은 화강암을 짜 맞춘 인공 석굴의 중심에 앉아 있는 통일 신라 불교 조각의 대표 문화유산입니다.",examTip:"삼국 시대 불상과 구별하고 통일 신라·인공 석굴·불국사와 연결하세요."},
-  "미륵사지 석탑":{summary:"미륵사지 석탑은 백제 무왕 때 세운 것으로, 목탑의 기둥과 지붕 구조를 돌로 표현한 백제의 대표 석탑입니다.",examTip:"백제 무왕·익산 미륵사·목탑 양식의 석탑화를 연결하세요."},
-  "발해 영광탑":{summary:"발해 영광탑은 벽돌로 쌓은 여러 층의 탑으로, 발해 문화에 나타난 중국 문화의 영향을 보여 주는 유적입니다.",examTip:"돌로 만든 신라 석탑과 재료·형태를 구별하세요."},
+  "금동 미륵보살 반가사유상":{summary:"금동 미륵보살 반가사유상은 삼국 시대에 구리로 형태를 만들고 표면에 금을 입힌 불상입니다. 오른발을 왼쪽 무릎 위에 올리고 오른손 손가락을 뺨에 댄 채 깊이 생각하는 미륵보살의 모습을 표현했습니다.",examTip:"반가사유 자세·머리의 관 장식·잔잔한 미소를 핵심 형태로 보고, 통일 신라의 석굴암 본존불과 시대와 재료를 구별하세요."},
+  "다보탑":{summary:"다보탑은 통일 신라 8세기에 경주 불국사 대웅전 앞에 세운 석탑입니다. 사각·팔각·원형 부재를 복잡하게 조합하고 계단과 돌사자를 배치한 화려하고 독창적인 구조가 특징입니다.",examTip:"『법화경』의 다보여래를 상징하며, 같은 불국사 경내의 단정하고 간결한 삼층 석탑인 석가탑과 외형을 비교하세요."},
+  "석굴암 본존불":{summary:"석굴암 본존불은 통일 신라 8세기에 화강암을 짜 맞춰 만든 인공 석굴의 원형 주실 중앙에 자리한 석가모니불 좌상입니다. 균형 잡힌 신체와 섬세한 옷주름, 깨달음을 상징하는 손모양에서 통일 신라 불교 조각의 높은 수준을 확인할 수 있습니다.",examTip:"통일 신라·인공 석굴·화강암·석가모니불을 연결하고, 금동으로 만든 삼국 시대 반가사유상과 구별하세요."},
+  "미륵사지 석탑":{summary:"미륵사지 석탑은 백제 무왕 때 익산 미륵사에 세운 석탑으로, 현존하는 백제 석탑 가운데 규모가 가장 큽니다. 돌기둥과 넓은 지붕돌을 사용해 목탑의 기둥·공포·처마 구조를 석재로 옮긴 과도기적 형식을 보여 줍니다.",examTip:"익산·백제 무왕·목탑 양식의 석탑화를 연결하고, 부여의 정림사지 오층석탑과 함께 백제 석탑으로 묶으세요."},
+  "발해 영광탑":{summary:"발해 영광탑은 오늘날 중국 지린성 지역에 남아 있는 발해의 벽돌탑입니다. 네모난 평면 위에 벽돌로 여러 층을 쌓은 모습에서 당 문화의 영향을 받아 발전한 발해 건축의 특징을 확인할 수 있습니다.",examTip:"벽돌을 사용한 발해 탑이라는 점을 중심으로, 화강암을 다듬어 세운 통일 신라의 석탑과 재료와 구조를 구별하세요."},
   "첨성대":{summary:"첨성대는 선덕 여왕 때 경주에 세운 천문 관측 시설로, 신라의 과학 기술과 천문 관측 활동을 보여 주는 유적입니다.",examTip:"선덕 여왕·경주·천문 관측을 연결하세요."},
   "무용총 수렵도":{summary:"무용총 수렵도는 말을 달리며 활을 쏘아 사냥하는 장면을 역동적으로 그린 고구려 고분 벽화입니다.",examTip:"고구려인의 활달한 생활 모습과 고분 벽화를 연결하세요."},
   "백제 금동 대향로":{summary:"백제 금동 대향로는 부여 능산리 절터에서 출토되었으며, 불교와 도교적 요소가 어우러진 백제의 뛰어난 금속 공예품입니다.",examTip:"부여 능산리·백제 금속 공예·불교와 도교 요소를 연결하세요."},
@@ -237,7 +240,7 @@ const laterEncounters:Encounter[]=laterEncounterData.map((item,index)=>({
   examTip:item.examTip,
 }));
 
-export const encounters:Encounter[]=[
+const lessonEncounters:Encounter[]=[
   {
     id:"l1-scroll",lessonId:1,role:"boss",level:1,name:"시대 연표 두루마리",type:"역사 자료",
     image:"/encounters/l1-boss-scroll.webp",page:"PDF 2쪽",
@@ -311,6 +314,11 @@ export const encounters:Encounter[]=[
   ...extendedEncounters,
   ...laterEncounters,
 ];
+
+export const encounters:Encounter[]=lessonEncounters.map(item=>({
+  ...item,
+  heritageUrl:item.type==="유물"||item.type==="유적"?heritageSearchUrl(item.name):undefined,
+}));
 
 export const encounterById=(id:string)=>encounters.find(item=>item.id===id);
 export const bossEncounter=(lessonId:number,level:1|2|3)=>encounters.find(item=>item.lessonId===lessonId&&item.role==="boss"&&item.level===level);

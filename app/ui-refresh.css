@@ -120,6 +120,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible{o
 .collection-group>h2{font:700 27px "Gowun Batang",serif;color:var(--navy)}
 .collection-grid{gap:16px}.collection-grid article{min-height:205px;padding:13px;border-radius:14px;background:var(--paper);box-shadow:0 6px 20px rgba(28,37,51,.05)}
 .collection-grid article>img,.locked-art{object-fit:contain;border-radius:10px;background:#f0e8da}.collection-grid h3{font:700 21px "Gowun Batang",serif}.collection-grid article.locked{opacity:.54}
+.collection-detail-label{display:block;margin-bottom:4px;color:#9b3b30;font-size:9px;font-weight:800;letter-spacing:.08em}.collection-grid article b .collection-detail-label{color:#806024}.collection-links{flex-wrap:wrap}
 
 /* Ranking */
 .ranking-section{padding-top:38px}.my-ranking{border-radius:var(--radius);padding:22px 24px;background:#f2e5c9}.my-ranking strong{font-family:"Gowun Batang",serif}

@@ -316,7 +316,7 @@ export default function GameQuizApp({user,signOutHref,firebaseUser=false,anonymo
           return <article className={unlocked?"":"locked"} key={item.id}>
             {unlocked?<Image src={item.image} alt={item.name} width={180} height={180}/>:<div className="locked-art">?</div>}
             <div><small>{unlocked?`${item.type} · ${item.role==="boss"?"보스":"연습"}`:"미발견"}</small><h3>{unlocked?item.name:"아직 만나지 못했습니다"}</h3>
-              {unlocked&&<><p>{item.summary}</p><b>{item.examTip}</b><span className="collection-links"><a href={item.noteUrl} target="_blank" rel="noreferrer">{item.page} 필기 ↗</a><a href={item.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a></span></>}
+              {unlocked&&<><p><span className="collection-detail-label">특징</span>{item.summary}</p><b><span className="collection-detail-label">비교·기억</span>{item.examTip}</b><span className="collection-links"><a href={item.noteUrl} target="_blank" rel="noreferrer">{item.page} 필기 ↗</a><a href={item.sourceUrl} target="_blank" rel="noreferrer">검증 자료 ↗</a>{item.heritageUrl&&<a href={item.heritageUrl} target="_blank" rel="noreferrer">국가유산 검색 ↗</a>}</span></>}
             </div>
           </article>;
         })}</div>
